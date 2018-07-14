@@ -169,6 +169,19 @@ namespace CelesteBot
             System.IO.File.WriteAllText(@"C:\Program Files (x86)\Steam\steamapps\common\Celeste\entities.txt", text2);
             System.IO.File.WriteAllText(@"C:\Program Files (x86)\Steam\steamapps\common\Celeste\readableEntities.txt", readableText);
         }
+        private static GamePadState GetGamePadState()
+        {
+            GamePadState currentState = MInput.GamePads[0].CurrentState;
+            for (int i = 0; i < 4; i++)
+            {
+                currentState = GamePad.GetState((PlayerIndex)i);
+                if (currentState.IsConnected)
+                {
+                    break;
+                }
+            }
+            return currentState;
+        }
         public static GamePadState CalculateInputs()
         {
             kbState = Keyboard.GetState();
@@ -194,6 +207,45 @@ namespace CelesteBot
                 pad
             );
             return padState;
+        }
+        public static void UpdateInputs()
+        {
+            kbState = Keyboard.GetState();
+            GamePadState padState = GetGamePadState();
+
+            if (IsKeyDown(Keys.OemBackslash) || IsKeyDown(Keys.OemQuotes))
+            {
+                padState = CalculateInputs();
+
+                bool found = false;
+                for (int i = 0; i < 4; i++)
+                {
+                    //MInput.GamePads[i].Update();
+                    if (MInput.GamePads[i].Attached)
+                    {
+                        found = true;
+                        MInput.GamePads[i].CurrentState = padState;
+                    }
+                }
+
+                if (!found)
+                {
+                    MInput.GamePads[0].CurrentState = padState;
+                    MInput.GamePads[0].Attached = true;
+                }
+                MInput.UpdateVirtualInputs();
+                PutEntitiesToFile();
+                return;
+            }
+            for (int i = 0; i < 4; i++)
+            {
+                if (MInput.GamePads[i].Attached)
+                {
+                    MInput.GamePads[i].CurrentState = padState;
+                }
+            }
+            MInput.UpdateVirtualInputs();
+            MInput.UpdateVirtualInputs();
         }
     }
 }
