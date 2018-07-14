@@ -46,10 +46,16 @@ namespace CelesteBot
             int width = 8, height = 8;
             return new Vector2((int)((realPos.X - offsetX) / width), (int)((realPos.Y - offsetY) / height));
         }
-        public static Vector2 GetTileUnderPlayer()
+        public static Vector2 GetPlayerPos()
         {
             Player player = Celeste.Celeste.Scene.Tracker.GetEntity<Player>();
-            Vector2 playerPos = player.Position; // This is the bottom center
+            if (player != null)
+            return player.Position; // This is the bottom center
+            return new Vector2(0,0);
+        }
+        public static Vector2 GetTileUnderPlayer()
+        {
+            Vector2 playerPos = GetPlayerPos();
             playerPos = new Vector2(playerPos.X, playerPos.Y + 4);
 
             return GetTilePosFromXYCenter(playerPos); // This is to account for offset
@@ -57,6 +63,7 @@ namespace CelesteBot
         public static Vector2 GetTileInFrontOfPlayer()
         {
             Player player = Celeste.Celeste.Scene.Tracker.GetEntity<Player>();
+            if (player == null) return new Vector2(0, 0);
             Vector2 playerPos = player.Position; // This is the bottom center
 
             if (player.Facing > 0)
@@ -221,7 +228,7 @@ namespace CelesteBot
                 bool found = false;
                 for (int i = 0; i < 4; i++)
                 {
-                    //MInput.GamePads[i].Update();
+                    MInput.GamePads[i].Update();
                     if (MInput.GamePads[i].Attached)
                     {
                         found = true;
