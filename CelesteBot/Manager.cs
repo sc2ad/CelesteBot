@@ -13,6 +13,7 @@ namespace CelesteBot
     public class Manager
     {
         private static KeyboardState kbState;
+
         private static bool IsKeyDown(Keys key)
         {
             return kbState.IsKeyDown(key);
@@ -185,7 +186,7 @@ namespace CelesteBot
         public static GamePadState CalculateInputs()
         {
             kbState = Keyboard.GetState();
-
+            // THIS MUST BE FIXED!
             GamePadDPad pad = new GamePadDPad(
                 ButtonState.Released,
                 ButtonState.Released,
@@ -237,15 +238,18 @@ namespace CelesteBot
                 PutEntitiesToFile();
                 return;
             }
-            for (int i = 0; i < 4; i++)
+            if (!Engine.Instance.IsActive)
             {
-                if (MInput.GamePads[i].Attached)
+                for (int i = 0; i < 4; i++)
                 {
-                    MInput.GamePads[i].CurrentState = padState;
+                    if (MInput.GamePads[i].Attached)
+                    {
+                        MInput.GamePads[i].CurrentState = padState;
+                    }
                 }
+                MInput.UpdateVirtualInputs();
             }
-            MInput.UpdateVirtualInputs();
-            MInput.UpdateVirtualInputs();
+
         }
     }
 }

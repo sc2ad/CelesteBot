@@ -1,5 +1,6 @@
 ﻿using Celeste.Mod;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Input;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Monocle;
@@ -30,7 +31,22 @@ namespace CelesteBot_Everest_Interop
         public Type Manager;
 
         private static string modLogKey = "celeste-bot";
-        
+
+        private static State state = State.None;
+        [Flags]
+        private enum State
+        {
+            None = 0,
+            Running = 1,
+            Disabled = 2
+        }
+        private static KeyboardState kbState; // For handling the bot enabling/disabling (state changes)
+
+        private static bool IsKeyDown(Keys key)
+        {
+            return kbState.IsKeyDown(key);
+        }
+
         public CelesteBotInteropModule()
         {
             Instance = this;
@@ -129,6 +145,8 @@ namespace CelesteBot_Everest_Interop
                 typeof(Game).GetMethod("Update", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic),
                 typeof(CelesteBotInteropModule).GetMethod("GameUpdate")
                 )).GenerateTrampoline<delegateGameUpdate>();
+
+            state = State.Disabled;
         }
         public override void Unload()
         {
@@ -204,7 +222,7 @@ namespace CelesteBot_Everest_Interop
             }
             original(self, time); // placeholder
             // Execute the bot here! (if it needs engine updates... who knows?)
-
+            
         }
 
         public static void MInput_Update(On.Monocle.MInput.orig_Update original)
@@ -214,8 +232,21 @@ namespace CelesteBot_Everest_Interop
                 original();
                 return;
             }
+            if (IsKeyDown(Keys.OemBackslash) || IsKeyDown(Keys.OemQuotes))
+            {
+                state = State.Running;
+            } else
+            {
+                state = State.Disabled;
+            }
+            
+            if (state == State.Disabled)
+            {
+                original();
+            }
+            
             UpdateInputs();
-            original();
+            
         }
 
         public static Detour detourGameUpdate;
