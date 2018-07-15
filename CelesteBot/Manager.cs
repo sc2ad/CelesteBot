@@ -18,6 +18,13 @@ namespace CelesteBot
         {
             return kbState.IsKeyDown(key);
         }
+        private static MTexture GetTile(Vector2 tile)
+        {
+            Level celesteLevel = Celeste.Celeste.Scene as Level;
+            SolidTiles tiles = celesteLevel.SolidTiles;
+            MTexture[,] tileArray = tiles.Tiles.Tiles.ToArray();
+            return tileArray[(int)tile.X, (int)tile.Y];
+        }
         public static Vector2 GetXYCenterFromTile(Vector2 tPos)
         {
             int offsetX = -428;
@@ -85,6 +92,20 @@ namespace CelesteBot
             SolidTiles tiles = celesteLevel.SolidTiles;
             MTexture[,] tileArray = tiles.Tiles.Tiles.ToArray();
             return tileArray[(int)tile.X, (int)tile.Y] != null;
+        }
+        public static bool IsWall(Vector2 tile)
+        {
+            Level celesteLevel = Celeste.Celeste.Scene as Level;
+            SolidTiles tiles = celesteLevel.SolidTiles;
+            MTexture[,] tileArray = tiles.Tiles.Tiles.ToArray();
+            if (tileArray[(int)tile.X, (int)tile.Y] != null)
+            {
+                if (!tileArray[(int)tile.X, (int)tile.Y].ToString().Equals("tilesets/scenery"))
+                {
+                    return true; // It isn't part of the scenery, so it must be something that i can hit
+                }
+            }
+            return false; // it either is blank or is part of the scenery
         }
         public static void PutEntitiesToFile()
         {
@@ -157,6 +178,8 @@ namespace CelesteBot
             {
                 toWrite += "\nTile in front of player has Center: " + GetXYCenterFromTile(tileLocationInFront) + " and Tile Loc: " + tileLocationInFront;
                 toWrite += "\nWith Player facing: " + (player.Facing == (Facings)1 ? "Right" : "Left");
+                toWrite += "\nWith tag: " + tileArray[(int)tileLocationInFront.X, (int)tileLocationInFront.Y].ToString();
+                toWrite += "\nWhich is " + (IsWall(tileLocationInFront) ? "" : "NOT ") + "a wall";
             }
             else
             {
@@ -176,6 +199,90 @@ namespace CelesteBot
             }
             System.IO.File.WriteAllText(@"C:\Program Files (x86)\Steam\steamapps\common\Celeste\entities.txt", text2);
             System.IO.File.WriteAllText(@"C:\Program Files (x86)\Steam\steamapps\common\Celeste\readableEntities.txt", readableText);
+        }
+        public static MTexture[,] GetVision()
+        {
+            
+            int visionX = 10;
+            int visionY = 10;
+
+            int underYIndex = visionY / 2 + 1;
+            int underXIndex = visionX / 2;
+            Vector2 tileUnder = GetTileUnderPlayer();
+            /*
+             * 0    1   2   3   4
+             * 1    1   2   3   4
+             * 2    1   2   3   4
+             * 3    1   2   3   4
+             * 4    1   2   3   4
+             * 5    1   2   3   4
+             */
+            MTexture[,] outTextures = new MTexture[visionX, visionY];
+            for (int i = 0; i < visionX; i++)
+            {
+                for (int j = 0; j < visionY; j++)
+                {
+                    outTextures[i, j] = GetTile(new Vector2(tileUnder.X - underXIndex + j, tileUnder.Y - underYIndex + i));
+                }
+            }
+            string text = new Vector2(tileUnder.X - underXIndex, tileUnder.Y - underYIndex).ToString();
+            text += "\n" + new Vector2(tileUnder.X - underXIndex + visionX - 1, tileUnder.Y - underYIndex + visionY - 1);
+            System.IO.File.WriteAllText(@"C:\Program Files (x86)\Steam\steamapps\common\Celeste\test.txt", text);
+            //outTextures[underXIndex, underYIndex] = GetTile(tileUnder); // fail safe?
+            return outTextures;
+        }
+        public static int[,] GetVisionInt()
+        {
+            int visionX = 10;
+            int visionY = 10;
+
+            int underYIndex = visionY / 2 + 1;
+            int underXIndex = visionX / 2;
+            Vector2 tileUnder = GetTileUnderPlayer();
+            int[,] outInts = new int[visionX, visionY];
+            for (int i = 0; i < visionX; i++)
+            {
+                for (int j = 0; j < visionY; j++)
+                {
+                    outInts[i,j] = IsWall(new Vector2(tileUnder.X - underYIndex + j, tileUnder.Y - underXIndex + i)) ? 1 : 0;
+                }
+            }
+            string text = new Vector2(tileUnder.X - underXIndex, tileUnder.Y - underYIndex).ToString();
+            text += "\n" + new Vector2(tileUnder.X - underXIndex + visionX - 1, tileUnder.Y - underYIndex + visionY - 1);
+            System.IO.File.WriteAllText(@"C:\Program Files (x86)\Steam\steamapps\common\Celeste\test.txt", text);
+            return outInts;
+        }
+        public static void WriteTexturesToFile(string file, MTexture[,] textures)
+        {
+            string text = "";
+            for (int i = 0; i < textures.GetLength(0); i++)
+            {
+                for (int j = 0; j < textures.GetLength(1); j++)
+                {
+                    if (textures[i, j] != null)
+                    {
+                        text += textures[i, j].ToString() + "\t";
+                    } else
+                    {
+                        text += "tilesets/air\t";
+                    }
+                }
+                text += "\n";
+            }
+            System.IO.File.WriteAllText(file, text);
+        }
+        public static void WriteIntsToFile(string file, int[,] ints)
+        {
+            string text = "";
+            for (int i = 0; i < ints.GetLength(0); i++)
+            {
+                for (int j = 0; j < ints.GetLength(1); j++)
+                {
+                    text += ints[i, j] + "\t";
+                }
+                text += "\n";
+            }
+            System.IO.File.WriteAllText(file, text);
         }
         private static GamePadState GetGamePadState()
         {
@@ -204,7 +311,7 @@ namespace CelesteBot
                 sticks,
                 new GamePadTriggers(0, 0),
                 new GamePadButtons(
-                    IsTile(GetTileInFrontOfPlayer()) ? Buttons.A : (Buttons)0
+                    IsWall(GetTileInFrontOfPlayer()) ? Buttons.A : (Buttons)0
                     | (Buttons)0
                     | (Buttons)0
                     | (Buttons)0
@@ -243,6 +350,8 @@ namespace CelesteBot
                 }
                 MInput.UpdateVirtualInputs();
                 PutEntitiesToFile();
+                //WriteTexturesToFile(@"C:\Program Files (x86)\Steam\steamapps\common\Celeste\vision.txt", GetVision());
+                WriteIntsToFile(@"C:\Program Files (x86)\Steam\steamapps\common\Celeste\visionInts.txt", GetVisionInt());
                 return;
             }
             if (!Engine.Instance.IsActive)
