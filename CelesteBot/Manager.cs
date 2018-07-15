@@ -233,18 +233,18 @@ namespace CelesteBot
         }
         public static int[,] GetVisionInt()
         {
-            int visionX = 10;
-            int visionY = 10;
+            int visionX = 5;
+            int visionY = 5;
 
             int underYIndex = visionY / 2 + 1;
             int underXIndex = visionX / 2;
             Vector2 tileUnder = GetTileUnderPlayer();
             int[,] outInts = new int[visionX, visionY];
-            for (int i = 0; i < visionX; i++)
+            for (int i = 0; i < visionY; i++)
             {
-                for (int j = 0; j < visionY; j++)
+                for (int j = 0; j < visionX; j++)
                 {
-                    outInts[i,j] = IsWall(new Vector2(tileUnder.X - underYIndex + j, tileUnder.Y - underXIndex + i)) ? 1 : 0;
+                    outInts[i,j] = IsWall(new Vector2(tileUnder.X - underXIndex + j, tileUnder.Y - underYIndex + i)) ? 1 : 0;
                 }
             }
             string text = new Vector2(tileUnder.X - underXIndex, tileUnder.Y - underYIndex).ToString();
