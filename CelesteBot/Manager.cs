@@ -13,7 +13,9 @@ namespace CelesteBot
     public class Manager
     {
         private static Vector2 FontScale = new Vector2(0.4f, 0.4f);
+        private static Vector2 textPos = new Vector2(20f, 30f);
         private static KeyboardState kbState;
+        public static String activeText = "Vision:\n"; // overriden by INTEROP
 
         private static bool IsKeyDown(Keys key)
         {
@@ -353,7 +355,19 @@ namespace CelesteBot
                 MInput.UpdateVirtualInputs();
                 //PutEntitiesToFile();
                 //WriteTexturesToFile(@"C:\Program Files (x86)\Steam\steamapps\common\Celeste\vision.txt", GetVision());
-                WriteIntsToFile(@"C:\Program Files (x86)\Steam\steamapps\common\Celeste\visionInts.txt", GetVisionInt());
+                //WriteIntsToFile(@"C:\Program Files (x86)\Steam\steamapps\common\Celeste\visionInts.txt", GetVisionInt());
+                int[,] ints = GetVisionInt();
+                string text = "";
+                for (int i = 0; i < ints.GetLength(0); i++)
+                {
+                    for (int j = 0; j < ints.GetLength(1); j++)
+                    {
+                        text += ints[i, j] + "\t";
+                    }
+                    text += "\n";
+                }
+                ResetActiveText("Vision:\n");
+                activeText += text;
                 return;
             }
             if (!Engine.Instance.IsActive)
@@ -376,15 +390,25 @@ namespace CelesteBot
             int viewHeight = Engine.ViewHeight;
 
             Monocle.Draw.SpriteBatch.Begin();
-            Monocle.Draw.Rect(10f, viewHeight - 50f, viewWidth - 20f, 40f, Color.Black * 0.8f);
-            ActiveFont.Draw(
-                "test test test test test test",
-                new Vector2(20f, viewHeight - 42f),
-                Vector2.Zero,
-                FontScale,
-                Color.White);
-            System.IO.File.WriteAllText(@"C:\Program Files (x86)\Steam\steamapps\common\Celeste\drawTest.txt", "Attempted to draw text!");
+            try
+            {
+                Monocle.Draw.Rect(textPos.X - 10, textPos.Y - 8, viewWidth - 20f, 40f, Color.Black * 0.8f);
+                ActiveFont.Draw(
+                    activeText,
+                    new Vector2(textPos.X, textPos.Y),
+                    Vector2.Zero,
+                    FontScale,
+                    Color.White);
+                //System.IO.File.WriteAllText(@"C:\Program Files (x86)\Steam\steamapps\common\Celeste\drawTest.txt", "Attempted to draw text!");
+            } catch (NullReferenceException e)
+            {
+                // The game has yet to finish loading, just don't draw text for now.
+            }
             Monocle.Draw.SpriteBatch.End();
+        }
+        public static void ResetActiveText(string reset)
+        {
+            activeText = reset;
         }
     }
 }

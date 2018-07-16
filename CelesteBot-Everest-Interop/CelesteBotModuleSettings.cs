@@ -10,5 +10,6 @@ namespace CelesteBot_Everest_Interop
     public class CelesteBotModuleSettings : EverestModuleSettings
     {
         public bool Enabled { get; set; } = true;
+        public bool DrawAlways { get; set; } = true;
     }
 }

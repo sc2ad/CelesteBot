@@ -142,6 +142,10 @@ namespace CelesteBot_Everest_Interop
                 typeof(CelesteBotInteropModule).GetMethod("Draw"),
                 Manager.GetMethod("Draw"));
 
+            detourResetText = new Detour(
+                typeof(CelesteBotInteropModule).GetMethod("ResetActiveText"),
+                Manager.GetMethod("ResetActiveText"));
+
             On.Monocle.Engine.Update += Engine_Update;
             On.Monocle.MInput.Update += MInput_Update;
             On.Monocle.Engine.Draw += Engine_Draw;
@@ -224,11 +228,17 @@ namespace CelesteBot_Everest_Interop
         {
             throw new Exception("Failed relinking Engine_Draw!");
         }
+        public static Detour detourResetText;
+
+        public static void ResetActiveText(string reset)
+        {
+            throw new Exception("Failed relinking ResetActiveText!");
+        }
 
         public static void Engine_Draw(On.Monocle.Engine.orig_Draw original, Engine self, GameTime time)
         {
             original(self, time);
-            if (state == State.Running) {
+            if (state == State.Running || Settings.DrawAlways) {
                 Draw();
             }
         }
@@ -242,7 +252,6 @@ namespace CelesteBot_Everest_Interop
             }
             original(self, time); // placeholder
             // Execute the bot here! (if it needs engine updates... who knows?)
-            
         }
 
         public static void MInput_Update(On.Monocle.MInput.orig_Update original)
@@ -259,6 +268,10 @@ namespace CelesteBot_Everest_Interop
             } else
             {
                 state = State.Disabled;
+                if (!Settings.DrawAlways)
+                {
+                    ResetActiveText("Vision:\n");
+                }
             }
             
             if (state == State.Disabled)
