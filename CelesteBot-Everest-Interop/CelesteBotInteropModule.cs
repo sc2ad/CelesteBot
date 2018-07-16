@@ -138,8 +138,13 @@ namespace CelesteBot_Everest_Interop
                 typeof(CelesteBotInteropModule).GetMethod("UpdateInputs"),
                 Manager.GetMethod("UpdateInputs"));
 
+            detourDraw = new Detour(
+                typeof(CelesteBotInteropModule).GetMethod("Draw"),
+                Manager.GetMethod("Draw"));
+
             On.Monocle.Engine.Update += Engine_Update;
             On.Monocle.MInput.Update += MInput_Update;
+            On.Monocle.Engine.Draw += Engine_Draw;
 
             originalUpdate = (detourGameUpdate = new Detour(
                 typeof(Game).GetMethod("Update", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic),
@@ -159,6 +164,7 @@ namespace CelesteBot_Everest_Interop
             detourGameUpdate.Free();
             On.Monocle.Engine.Update -= Engine_Update;
             On.Monocle.MInput.Update -= MInput_Update;
+            On.Monocle.Engine.Draw -= Engine_Draw;
             detourGameUpdate.Undo();
             detourGameUpdate.Free();
             Logger.Log(modLogKey, "Unload successful");
@@ -212,6 +218,24 @@ namespace CelesteBot_Everest_Interop
             // This gets relinked to CelesteBot.Manager.UpdateInputs
             throw new Exception("Failed relinking UpdateInputs!");
         }
+        public static Detour detourDraw;
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static void Draw()
+        {
+            throw new Exception("Failed relinking Engine_Draw!");
+        }
+
+        public static void Engine_Draw(On.Monocle.Engine.orig_Draw original, Engine self, GameTime time)
+        {
+            if (state == State.Disabled || !Settings.Enabled)
+            {
+                original(self, time);
+            }
+            else if (state == State.Running) {
+                Draw();
+            }
+            System.IO.File.WriteAllText(@"C:\Program Files (x86)\Steam\steamapps\common\Celeste\drawTestInterop.txt", "State: " + state);
+        }
 
         public static void Engine_Update(On.Monocle.Engine.orig_Update original, Engine self, GameTime time)
         {
@@ -227,6 +251,7 @@ namespace CelesteBot_Everest_Interop
 
         public static void MInput_Update(On.Monocle.MInput.orig_Update original)
         {
+            kbState = Keyboard.GetState();
             if (!Settings.Enabled)
             {
                 original();
@@ -235,9 +260,11 @@ namespace CelesteBot_Everest_Interop
             if (IsKeyDown(Keys.OemBackslash) || IsKeyDown(Keys.OemQuotes))
             {
                 state = State.Running;
+                Logger.Log(modLogKey, "State is now running");
             } else
             {
                 state = State.Disabled;
+                Logger.Log(modLogKey, "State is no longer running");
             }
             
             if (state == State.Disabled)
@@ -246,7 +273,6 @@ namespace CelesteBot_Everest_Interop
             }
             
             UpdateInputs();
-            
         }
 
         public static Detour detourGameUpdate;

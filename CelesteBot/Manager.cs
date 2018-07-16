@@ -12,6 +12,7 @@ namespace CelesteBot
 {
     public class Manager
     {
+        private static Vector2 FontScale = new Vector2(0.4f, 0.4f);
         private static KeyboardState kbState;
 
         private static bool IsKeyDown(Keys key)
@@ -349,7 +350,7 @@ namespace CelesteBot
                     MInput.GamePads[0].Attached = true;
                 }
                 MInput.UpdateVirtualInputs();
-                PutEntitiesToFile();
+                //PutEntitiesToFile();
                 //WriteTexturesToFile(@"C:\Program Files (x86)\Steam\steamapps\common\Celeste\vision.txt", GetVision());
                 WriteIntsToFile(@"C:\Program Files (x86)\Steam\steamapps\common\Celeste\visionInts.txt", GetVisionInt());
                 return;
@@ -366,6 +367,23 @@ namespace CelesteBot
                 MInput.UpdateVirtualInputs();
             }
 
+        }
+        public static void Draw(GameTime gameTime)
+        {
+            //Monocle.Engine.Draw(gameTime);
+            int viewWidth = Engine.ViewWidth;
+            int viewHeight = Engine.ViewHeight;
+
+            Monocle.Draw.SpriteBatch.Begin();
+            Monocle.Draw.Rect(10f, viewHeight - 50f, viewWidth - 20f, 40f, Color.Black * 0.8f);
+            ActiveFont.Draw(
+                "test test test test test test",
+                new Vector2(20f, viewHeight - 42f),
+                Vector2.Zero,
+                FontScale,
+                Color.White);
+            System.IO.File.WriteAllText(@"C:\Program Files (x86)\Steam\steamapps\common\Celeste\drawTest.txt", "Attempted to draw text!");
+            Monocle.Draw.SpriteBatch.End();
         }
     }
 }
