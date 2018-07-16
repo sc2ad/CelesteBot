@@ -227,14 +227,10 @@ namespace CelesteBot_Everest_Interop
 
         public static void Engine_Draw(On.Monocle.Engine.orig_Draw original, Engine self, GameTime time)
         {
-            if (state == State.Disabled || !Settings.Enabled)
-            {
-                original(self, time);
-            }
-            else if (state == State.Running) {
+            original(self, time);
+            if (state == State.Running) {
                 Draw();
             }
-            System.IO.File.WriteAllText(@"C:\Program Files (x86)\Steam\steamapps\common\Celeste\drawTestInterop.txt", "State: " + state);
         }
 
         public static void Engine_Update(On.Monocle.Engine.orig_Update original, Engine self, GameTime time)
@@ -260,11 +256,9 @@ namespace CelesteBot_Everest_Interop
             if (IsKeyDown(Keys.OemBackslash) || IsKeyDown(Keys.OemQuotes))
             {
                 state = State.Running;
-                Logger.Log(modLogKey, "State is now running");
             } else
             {
                 state = State.Disabled;
-                Logger.Log(modLogKey, "State is no longer running");
             }
             
             if (state == State.Disabled)

@@ -313,6 +313,7 @@ namespace CelesteBot
                 new GamePadTriggers(0, 0),
                 new GamePadButtons(
                     IsWall(GetTileInFrontOfPlayer()) ? Buttons.A : (Buttons)0
+                    //Buttons.A
                     | (Buttons)0
                     | (Buttons)0
                     | (Buttons)0
