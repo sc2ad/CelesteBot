@@ -56,6 +56,20 @@ namespace CelesteBot
             int width = 8, height = 8;
             return new Vector2((int)((realPos.X - offsetX) / width), (int)((realPos.Y - offsetY) / height));
         }
+        public static Entity GetEntityFromXYCenter(Vector2 realPos)
+        {
+            //System.Collections.Generic.List<Entity> entities = Celeste.Celeste.Scene.Tracker.GetEntities<Entity>();
+            EntityList entities = Celeste.Celeste.Scene.Entities;/*Tracker.GetEntities<Entity>();*/
+            for (int i = 0; i < entities.Count; i++)
+            {
+                if (entities[i].Collidable && entities[i].CollidePoint(realPos) && entities[i].Tag != 16) // 16=Tag of player
+                {
+                    // Collided with the point and is collidable
+                    return entities[i];
+                }
+            }
+            return null;
+        }
         public static Vector2 GetPlayerPos()
         {
             Player player = Celeste.Celeste.Scene.Tracker.GetEntity<Player>();
@@ -114,7 +128,7 @@ namespace CelesteBot
         {
             Level celesteLevel = Celeste.Celeste.Scene as Level;
             SolidTiles tiles = celesteLevel.SolidTiles;
-
+            
             string readableTextures = "Center of all tiles (?): " + tiles.Center + "\n";
             try
             {
@@ -149,13 +163,8 @@ namespace CelesteBot
                 
             }
             */
-            string text = tiles.Tiles.ToString() + "\n";
-            text += tiles.Tiles.Tiles.GetSegment(1, 1).ToString() + "\n";
-            text += tiles.Tiles.Tiles.ToArray().ToString() + "\n";
+            
             MTexture[,] tileArray = tiles.Tiles.Tiles.ToArray();
-            System.Collections.IEnumerator enummer2 = tiles.Tiles.Tiles.ToArray().GetEnumerator();
-            enummer2.Reset();
-            string arrayText = "";
 
             //System.IO.File.WriteAllText(@"C:\Program Files (x86)\Steam\steamapps\common\Celeste\tiles.txt", text);
             System.IO.File.WriteAllText(@"C:\Program Files (x86)\Steam\steamapps\common\Celeste\readableTextures.txt", readableTextures);
@@ -176,13 +185,24 @@ namespace CelesteBot
                 toWrite = "Tile under player has Center: " + GetXYCenterFromTile(tileLocationUnderPlayer) + " and Tile Loc: " + tileLocationUnderPlayer;
                 toWrite += "\nWith Player pos: " + playerPos;
             }
+            MTexture texture = null;
+            try
+            {
+                texture = GetTile(tileLocationInFront);
+            } catch (NullReferenceException e)
+            {
+                // Texture/Tile does not exist
 
+            }
             if (IsTile(tileLocationInFront))
             {
                 toWrite += "\nTile in front of player has Center: " + GetXYCenterFromTile(tileLocationInFront) + " and Tile Loc: " + tileLocationInFront;
                 toWrite += "\nWith Player facing: " + (player.Facing == (Facings)1 ? "Right" : "Left");
-                toWrite += "\nWith tag: " + tileArray[(int)tileLocationInFront.X, (int)tileLocationInFront.Y].ToString();
-                toWrite += "\nWhich is " + (IsWall(tileLocationInFront) ? "" : "NOT ") + "a wall";
+                if (texture != null)
+                {
+                    toWrite += "\nWith tag: " + tileArray[(int)tileLocationInFront.X, (int)tileLocationInFront.Y].ToString();
+                    toWrite += "\nWhich is " + (IsWall(tileLocationInFront) ? "" : "NOT ") + "a wall";
+                }
             }
             else
             {
@@ -193,14 +213,14 @@ namespace CelesteBot
             System.IO.File.WriteAllText(@"C:\Program Files (x86)\Steam\steamapps\common\Celeste\info.txt", toWrite);
 
 
-            string text2 = "";
+            //string text2 = "";
             string readableText = "";
             for (int i = 0; i < entities.Count; i++)
             {
-                text += entities[i].ToString() + "\n";
-                readableText += "Entity at Position: " + entities[i].Position + " and Center: " + entities[i].Center + " has tag: " + entities[i].Tag + "\n";
+                //text += entities[i].ToString() + "\n";
+                readableText += "Entity at Position: " + entities[i].Position + " and Center: " + entities[i].Center + " has tag: " + entities[i].Tag + " with collision: "+entities[i].Collidable+"\n";
             }
-            System.IO.File.WriteAllText(@"C:\Program Files (x86)\Steam\steamapps\common\Celeste\entities.txt", text2);
+            //System.IO.File.WriteAllText(@"C:\Program Files (x86)\Steam\steamapps\common\Celeste\entities.txt", text2);
             System.IO.File.WriteAllText(@"C:\Program Files (x86)\Steam\steamapps\common\Celeste\readableEntities.txt", readableText);
         }
         public static MTexture[,] GetVision()
@@ -247,7 +267,12 @@ namespace CelesteBot
             {
                 for (int j = 0; j < visionX; j++)
                 {
-                    outInts[i,j] = IsWall(new Vector2(tileUnder.X - underXIndex + j, tileUnder.Y - underYIndex + i)) ? 1 : 0;
+                    int temp = IsWall(new Vector2(tileUnder.X - underXIndex + j, tileUnder.Y - underYIndex + i)) ? 1 : 0;
+                    if (temp == 0)
+                    {
+                        temp = GetEntityFromXYCenter(GetXYCenterFromTile(new Vector2(tileUnder.X - underXIndex + j, tileUnder.Y - underYIndex + i))) != null ? 1 : 0;
+                    }
+                    outInts[i, j] = temp;
                 }
             }
             string text = new Vector2(tileUnder.X - underXIndex, tileUnder.Y - underYIndex).ToString();
@@ -353,9 +378,10 @@ namespace CelesteBot
                     MInput.GamePads[0].Attached = true;
                 }
                 MInput.UpdateVirtualInputs();
-                //PutEntitiesToFile();
+                PutEntitiesToFile();
                 //WriteTexturesToFile(@"C:\Program Files (x86)\Steam\steamapps\common\Celeste\vision.txt", GetVision());
                 //WriteIntsToFile(@"C:\Program Files (x86)\Steam\steamapps\common\Celeste\visionInts.txt", GetVisionInt());
+                
                 int[,] ints = GetVisionInt();
                 string text = "";
                 for (int i = 0; i < ints.GetLength(0); i++)
@@ -368,6 +394,7 @@ namespace CelesteBot
                 }
                 ResetActiveText("Vision:\n");
                 activeText += text;
+                
                 return;
             }
             if (!Engine.Instance.IsActive)
