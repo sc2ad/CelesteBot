@@ -17,6 +17,18 @@ namespace CelesteBot
         private static KeyboardState kbState;
         public static String activeText = "Vision:\n"; // overriden by INTEROP
 
+        // NEAT PARAMS:
+        // For Genome:
+        public static float RE_RANDOMIZE_WEIGHT_CHANCE = 0.1f;
+        public static float WEIGHT_MUTATION_CHANCE = 0.7f;
+        public static float ADD_CONNECTION_CHANCE = 0.1f;
+        public static float ADD_NODE_CHANCE = 0.01f;
+        // For Population:
+        public static int EXTINCTION_SAVE_TOP = 5; // The number of Species to save when a mass extinction occurs
+
+
+
+
         private static bool IsKeyDown(Keys key)
         {
             return kbState.IsKeyDown(key);
