@@ -104,15 +104,15 @@ namespace CelesteBot
             clone.layer = layer;
             return clone;
         }
-        public String ToString()
+        public override string ToString()
         {
             return "N<" + id + ", " + layer + ">";
         }
-        public static Node nodeFromString(String str)
+        public static Node nodeFromString(string str)
         {
             try
             {
-                String[] split = str.Split(new string[] { "N<" }, StringSplitOptions.None)[1].Split(new string[] { ">" }, StringSplitOptions.None)[0].Split(new string[] { ", " }, StringSplitOptions.None);
+                string[] split = str.Split(new string[] { "N<" }, StringSplitOptions.None)[1].Split(new string[] { ">" }, StringSplitOptions.None)[0].Split(new string[] { ", " }, StringSplitOptions.None);
                 int id = Convert.ToInt32(split[0]);
                 int layer = Convert.ToInt32(split[1]);
                 Node outp = new Node(id);

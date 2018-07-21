@@ -483,89 +483,7 @@ namespace CelesteBot
             return clone;
         }
 
-        //draw the genome on the screen
-        /*
-        public void drawGenome(int startX, int startY, int w, int h)
-        {
-            // yuck
-            ArrayList allNodes = new ArrayList();
-            ArrayList nodePoses = new ArrayList();
-            ArrayList nodeNumbers = new ArrayList();
-
-            // Split the nodes into layers
-            for (int i = 0; i < layers; i++)
-            {
-                ArrayList temp = new ArrayList();
-                for (int j = 0; j < nodes.Count; j++)
-                {//for each node 
-                    if (nodes.get(j).layer == i)
-                    {//check if it is in this layer
-                        temp.Add(nodes.get(j)); //add it to this layer
-                    }
-                }
-                allNodes.Add(temp);//add this layer to all nodes
-            }
-
-            //for each layer add the position of the node on the screen to the node posses arraylist
-            for (int i = 0; i < layers; i++)
-            {
-                fill(255, 0, 0);
-                float x = startX + (float)((i + 1) * w) / (float)(layers + 1.0);
-                for (int j = 0; j < allNodes.get(i).Count; j++)
-                {//for the position in the layer
-                    float y = startY + ((float)(j + 1.0) * h) / (float)(allNodes.get(i).Count + 1.0);
-                    nodePoses.Add(new Vector2(x, y));
-                    nodeNumbers.Add(allNodes.get(i).get(j).id);
-                }
-            }
-
-            //draw connections 
-            stroke(0);
-            strokeWeight(2);
-            for (int i = 0; i < genes.Count; i++)
-            {
-                if (genes.get(i).enabled)
-                {
-                    stroke(0);
-                }
-                else
-                {
-                    stroke(100);
-                }
-                Vector2 from;
-                Vector2 to;
-                from = nodePoses.get(nodeNumbers.indexOf(genes.get(i).fromNode.id));
-                to = nodePoses.get(nodeNumbers.indexOf(genes.get(i).toNode.id));
-                if (genes.get(i).weight > 0)
-                {
-                    stroke(255, 0, 0);
-                }
-                else
-                {
-                    stroke(0, 0, 255);
-                }
-                strokeWeight(map(abs(genes.get(i).weight), 0, 1, 0, 5));
-                line(from.x, from.y, to.x, to.y);
-            }
-
-            //draw nodes last so they appear ontop of the connection lines
-            for (int i = 0; i < nodePoses.Count; i++)
-            {
-                fill(255);
-                stroke(0);
-                strokeWeight(1);
-                ellipse(nodePoses.get(i).x, nodePoses.get(i).y, 20, 20);
-                textSize(10);
-                fill(0);
-                textAlign(CENTER, CENTER);
-
-
-                text(nodeNumbers.get(i), nodePoses.get(i).x, nodePoses.get(i).y);
-            }
-        }
-        */
-
-        public string ToString()
+        public override string ToString()
         {
             string outp = "GENOME<<";
             outp += "I:" + inputs + ", ";
@@ -593,17 +511,17 @@ namespace CelesteBot
                 int inputs = Convert.ToInt32(str.Split(new string[] { "I:" }, StringSplitOptions.None)[1].Split(new string[] { ", " }, StringSplitOptions.None)[0]);
                 int outputs = Convert.ToInt32(str.Split(new string[] { "O:" }, StringSplitOptions.None)[1].Split(new string[] { ", " }, StringSplitOptions.None)[0]);
                 ArrayList nodes = new ArrayList();
-                String forNodes = str.Split(new string[] { "NODE<" }, StringSplitOptions.None)[1].Split(new string[] { ">, GENES<" }, StringSplitOptions.None)[0];
+                string forNodes = str.Split(new string[] { "NODE<" }, StringSplitOptions.None)[1].Split(new string[] { ">, GENES<" }, StringSplitOptions.None)[0];
                 while (forNodes.Contains("N<"))
                 {
                     nodes.Add(Node.nodeFromString(forNodes));
                     forNodes = forNodes.Substring(forNodes.IndexOf(">") + 1, forNodes.Length);
                 }
                 ArrayList genes = new ArrayList();
-                String forGenes = str.Split(new string[] { "GENES<" }, StringSplitOptions.None)[1].Split(new string[] { ">, Layers:" }, StringSplitOptions.None)[0];
+                string forGenes = str.Split(new string[] { "GENES<" }, StringSplitOptions.None)[1].Split(new string[] { ">, Layers:" }, StringSplitOptions.None)[0];
                 while (forGenes.Contains("G<"))
                 {
-                    String forGene1 = forGenes.Substring(0, forGenes.IndexOf("e>") + 1);
+                    string forGene1 = forGenes.Substring(0, forGenes.IndexOf("e>") + 1);
                     genes.Add(GeneConnection.geneFromString(forGene1));
                     forGenes = forGenes.Substring(forGenes.IndexOf("e>") + 3, forGenes.Length);
                 }

@@ -68,21 +68,21 @@ namespace CelesteBot
             clone.enabled = enabled;
             return clone;
         }
-        public String ToString()
+        public override string ToString()
         {
             // G:[N:[1,2], N:[2,2], W:3.2, I:4, E:true]
             return "G<" + fromNode + ", " + toNode + ", W:" + weight + ", I:" + innovationNo + ", E:" + enabled + ">";
         }
-        public static GeneConnection geneFromString(String str)
+        public static GeneConnection geneFromString(string str)
         {
             try
             {
-                String temp = str.Split(new string[]{"G<"}, StringSplitOptions.None)[1];
-                String fullstring = temp.Substring(0, temp.Length - 1);
+                string temp = str.Split(new string[]{"G<"}, StringSplitOptions.None)[1];
+                string fullstring = temp.Substring(0, temp.Length - 1);
                 Node fromNode = Node.nodeFromString(fullstring.Substring(0, fullstring.IndexOf('>') + 1));
                 Node toNode = Node.nodeFromString(fullstring.Substring(fullstring.IndexOf('>') + 3, fullstring.IndexOf('>', fullstring.IndexOf('>') + 3) + 1));
-                String partial = fullstring.Substring(fullstring.IndexOf('>', fullstring.IndexOf('>') + 3) + 3, fullstring.Length);
-                String[] split = partial.Split(new string[]{", "}, StringSplitOptions.None);
+                string partial = fullstring.Substring(fullstring.IndexOf('>', fullstring.IndexOf('>') + 3) + 3, fullstring.Length);
+                string[] split = partial.Split(new string[]{", "}, StringSplitOptions.None);
                 float weight = (float)Convert.ToDouble(split[0].Substring(2, split[0].Length));
                 int innovationNo = Convert.ToInt32(split[1].Substring(2, split[1].Length));
                 //bool enabled = bool.parseBoolean(split[2].Substring(2, split[2].Length-1));
