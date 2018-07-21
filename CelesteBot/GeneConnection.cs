@@ -68,10 +68,10 @@ namespace CelesteBot
             clone.enabled = enabled;
             return clone;
         }
-        public String toString()
+        public String ToString()
         {
             // G:[N:[1,2], N:[2,2], W:3.2, I:4, E:true]
-            return "G<" + fromNode.toString() + ", " + toNode.toString() + ", W:" + weight + ", I:" + innovationNo + ", E:" + enabled + ">";
+            return "G<" + fromNode + ", " + toNode + ", W:" + weight + ", I:" + innovationNo + ", E:" + enabled + ">";
         }
         public static GeneConnection geneFromString(String str)
         {

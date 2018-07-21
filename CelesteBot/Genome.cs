@@ -564,7 +564,7 @@ namespace CelesteBot
         }
         */
 
-        public string toString()
+        public string ToString()
         {
             string outp = "GENOME<<";
             outp += "I:" + inputs + ", ";

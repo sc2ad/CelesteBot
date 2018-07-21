@@ -104,7 +104,7 @@ namespace CelesteBot
             clone.layer = layer;
             return clone;
         }
-        public String toString()
+        public String ToString()
         {
             return "N<" + id + ", " + layer + ">";
         }
