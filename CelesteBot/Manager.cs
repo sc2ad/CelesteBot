@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using Monocle;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -445,6 +446,122 @@ namespace CelesteBot
             }
             Monocle.Draw.SpriteBatch.End();
         }
+        public static void DrawBrain(Genome toDraw)
+        {
+            int viewWidth = Engine.ViewWidth;
+            int viewHeight = Engine.ViewHeight;
+
+            ArrayList nodeLayers = new ArrayList();
+
+            float x = 200;
+            float y = 50;
+            float w = 500;
+            float h = 400;
+            float radius = 4;
+            for (int i = 0; i < toDraw.layers; i++)
+            {
+                ArrayList temp = new ArrayList();
+                foreach (Node n in toDraw.nodes)
+                {
+                    if (n.layer == i)
+                    {
+                        temp.Add(n.clone());
+                        
+                    }
+                }
+                nodeLayers.Add(temp);
+            }
+
+            ArrayList vectorNodes = new ArrayList();
+
+            foreach (ArrayList a in nodeLayers)
+            {
+                foreach (Node n in a)
+                {
+                    vectorNodes.Add(new Vector2(x, y));
+                    y += h / a.Count;
+                }
+                x += w / nodeLayers.Count;
+            }
+
+            foreach (GeneConnection g in toDraw.genes)
+            {
+                Vector2 start = new Vector2(0,0);
+                Vector2 end = new Vector2(0,0);
+                for (int i = 0; i < toDraw.nodes.Count; i++)
+                {
+                    Node temp = (Node)toDraw.nodes[i];
+                    if (temp.id == g.fromNode.id)
+                    {
+                        start = (Vector2)vectorNodes[i];
+                    }
+                    else if (temp.id == g.toNode.id)
+                    {
+                        end = (Vector2)vectorNodes[i];
+                    }
+                    
+                }
+                Color color = Color.Blue;
+                if (g.weight < 0)
+                {
+                    color = Color.Red;
+                }
+                Monocle.Draw.Line(start, end, color);
+            }
+
+            for (int i = 0; i < vectorNodes.Count; i++)
+            {
+                Vector2 v = (Vector2)vectorNodes[i];
+                Node temp = (Node)toDraw.nodes[i];
+                Monocle.Draw.Circle(v.X, v.Y, radius, Color.White, 3, 100);
+                ActiveFont.Draw(
+                    Convert.ToString(temp.id),
+                    new Vector2(v.X, v.Y),
+                    Vector2.Zero,
+                    FontScale,
+                    Color.White);
+            }
+        }
+        /*
+        void drawGraph()
+        {
+            int graphX = 50;
+            int graphY = height - 250;
+            int graphWidth = 1000;
+            int graphHeight = 200;
+            int xInterval = graphWidth / numToSave;
+            int maxScore = 0;
+            for (int i = 0; i < scoresToSave.size(); i++)
+            {
+                if (scoresToSave.get(i) > maxScore)
+                {
+                    maxScore = scoresToSave.get(i);
+                }
+            }
+            int yInterval = graphHeight / (maxScore + 1);
+            if (showLearningGraph)
+            {
+                stroke(255);
+                line(graphX, graphY, graphX, graphY + graphHeight);
+                line(graphX, graphY + graphHeight, graphX + graphWidth, graphY + graphHeight);
+                textSize(15);
+                textAlign(LEFT);
+                text(maxScore, graphX - 30, graphY + 10);
+                if (scoresToSave.size() >= 2)
+                {
+                    for (int i = 0; i < scoresToSave.size() - 1; i++)
+                    {
+                        line(graphX + xInterval * i, graphY + graphHeight - yInterval * scoresToSave.get(i), graphX + xInterval * (i + 1), graphY + graphHeight - yInterval * scoresToSave.get(i + 1));
+                        line(graphX + xInterval * i, graphY + graphHeight + 3, graphX + xInterval * i, graphY + graphHeight - 3);
+                        textAlign(CENTER);
+                        text(pop.gen - scoresToSave.size() + i, graphX + xInterval * i, graphY + graphHeight + 15);
+                    }
+                    line(graphX + xInterval * (scoresToSave.size() - 1), graphY + graphHeight + 3, graphX + xInterval * (scoresToSave.size() - 1), graphY + graphHeight - 3);
+                    text(pop.gen - 1, graphX + xInterval * (scoresToSave.size() - 1), graphY + graphHeight + 15);
+                }
+            }
+        }
+        */
         public static void ResetActiveText(string reset)
         {
             activeText = reset;

@@ -476,6 +476,7 @@ namespace CelesteBot
             clone.layers = layers;
             clone.nextNode = nextNode;
             clone.biasNode = biasNode;
+            clone.bNode = bNode.clone();
             clone.connectNodes();
             clone.generateNetwork();
 
