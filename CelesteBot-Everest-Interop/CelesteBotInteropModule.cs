@@ -30,7 +30,7 @@ namespace CelesteBot_Everest_Interop
         public static string CelesteBotDLLPath { get; protected set; }
         public Type Manager;
 
-        private static string modLogKey = "celeste-bot";
+        public static string ModLogKey = "celeste-bot";
 
         private static State state = State.None;
         [Flags]
@@ -66,10 +66,10 @@ namespace CelesteBot_Everest_Interop
         {
             if (!SetupPath())
             {
-                Logger.Log(modLogKey, "CelesteBot.dll not found in game directory. CelesteBot-Everest-Interop not loading.");
+                Logger.Log(ModLogKey, "CelesteBot.dll not found in game directory. CelesteBot-Everest-Interop not loading.");
             }
 
-            Logger.Log(modLogKey, "Loading CelesteBot.dll...");
+            Logger.Log(ModLogKey, "Loading CelesteBot.dll...");
             try
             {
                 using (Stream stream = File.OpenRead(CelesteBotDLLPath))
@@ -89,7 +89,7 @@ namespace CelesteBot_Everest_Interop
                             modder.RelinkMap[attrib.FindableID] = new RelinkMapEntry(proxies.FullName, proxy.GetFindableID(withType: false));
                         }
 
-                        Logger.Log(modLogKey, "Created relink map.");
+                        Logger.Log(ModLogKey, "Created relink map.");
 
                         CelesteBotDLL = Everest.Relinker.GetRelinkedAssembly(new EverestModuleMetadata
                         {
@@ -119,18 +119,18 @@ namespace CelesteBot_Everest_Interop
             }
             catch (Exception ex)
             {
-                Logger.Log(modLogKey, "Failed loading new/modified CelesteBot.dll");
+                Logger.Log(ModLogKey, "Failed loading new/modified CelesteBot.dll");
                 Logger.LogDetailed(ex);
             }
             if (CelesteBotDLL == null)
             {
-                Logger.Log(modLogKey, "Failed loading new/modified CelesteBot.dll (null CelesteBotDLL)");
+                Logger.Log(ModLogKey, "Failed loading new/modified CelesteBot.dll (null CelesteBotDLL)");
             }
 
             Manager = CelesteBotDLL.GetType("CelesteBot.Manager");
             if (Manager == null)
             {
-                Logger.Log(modLogKey, "Failed to load Manager type from CelesteBot.dll!");
+                Logger.Log(ModLogKey, "Failed to load Manager type from CelesteBot.dll!");
             }
             Type selfType = GetType();
 
@@ -171,7 +171,7 @@ namespace CelesteBot_Everest_Interop
             On.Monocle.Engine.Draw -= Engine_Draw;
             detourGameUpdate.Undo();
             detourGameUpdate.Free();
-            Logger.Log(modLogKey, "Unload successful");
+            Logger.Log(ModLogKey, "Unload successful");
         }
 
         private TypeDefinition engineTypeDef;
