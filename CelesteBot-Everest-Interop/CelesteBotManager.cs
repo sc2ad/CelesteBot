@@ -9,12 +9,17 @@ namespace CelesteBot_Everest_Interop
     public class CelesteBotManager
     {
         public static float ACTION_THRESHOLD = 0.7f;
+        public static float RE_RANDOMIZE_WEIGHT_CHANCE = 0.2f;
+        public static double WEIGHT_MUTATION_CHANCE = 0.8;
+        public static double ADD_CONNECTION_CHANCE = 0.1;
+        public static double ADD_NODE_CHANCE = 0.01;
+
+
         private static string activeText = "Vision:\n";
         private static Vector2 FontScale = new Vector2(0.4f, 0.4f);
         private static Vector2 textPos = new Vector2(20f, 30f);
 
         public static string ActiveText { get => activeText; set => activeText = value; }
-
 
         public static void Draw()
         {
