@@ -13,6 +13,11 @@ namespace CelesteBot_Everest_Interop
         public static double WEIGHT_MUTATION_CHANCE = 0.8;
         public static double ADD_CONNECTION_CHANCE = 0.1;
         public static double ADD_NODE_CHANCE = 0.01;
+        
+        public static int VISION_2D_X_SIZE = 5;
+        public static int VISION_2D_Y_SIZE = 5;
+        public static int INPUTS = VISION_2D_X_SIZE * VISION_2D_Y_SIZE + 0;
+        public static int OUTPUTS = 6;
 
 
         private static string activeText = "Vision:\n";

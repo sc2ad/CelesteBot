@@ -28,6 +28,8 @@ namespace CelesteBot_Everest_Interop
 
         public static string ModLogKey = "celeste-bot";
 
+        private static CelestePlayer tempPlayer;
+
         private static State state = State.None;
         [Flags]
         private enum State
@@ -64,6 +66,7 @@ namespace CelesteBot_Everest_Interop
             // Hey, InputPlayer should be made to work without removing self when players die
             inputPlayer = new InputPlayer(Celeste.Celeste.Instance, new InputData()); // Blank InputData when constructing. Overwrite it when needing to update inputs
             Celeste.Celeste.Instance.Components.Add(inputPlayer);
+            tempPlayer = new CelestePlayer();
         }
         public override void Unload()
         {
@@ -112,6 +115,10 @@ namespace CelesteBot_Everest_Interop
             else
             {
                 state = State.Disabled;
+            }
+            if (state == State.Running)
+            {
+                tempPlayer.Update();
             }
             inputPlayer.UpdateData(temp);
             original();

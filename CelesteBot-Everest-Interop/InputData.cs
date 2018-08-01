@@ -23,6 +23,10 @@ namespace CelesteBot_Everest_Interop
         ///<param name="actions"actions array with length 6.</param>
         public InputData(float[] actions)
         {
+            if (actions.Length != CelesteBotManager.OUTPUTS)
+            {
+                throw new Exception("Wrong count of outputs! Attempted with: " + actions.Length + " but should have been: " + CelesteBotManager.OUTPUTS);
+            }
             MoveX = Math.Abs(actions[0]) > CelesteBotManager.ACTION_THRESHOLD ? actions[0] : 0;
             MoveY = Math.Abs(actions[1]) > CelesteBotManager.ACTION_THRESHOLD ? actions[1] : 0;
 
