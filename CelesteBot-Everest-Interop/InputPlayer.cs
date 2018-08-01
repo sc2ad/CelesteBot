@@ -49,12 +49,16 @@ namespace CelesteBot_Everest_Interop
         public override void Update(GameTime gameTime)
         {
             base.Update(gameTime);
-            Player p = Celeste.Celeste.Scene.Tracker.GetEntity<Player>();
-            if (p.Dead || p == null) // Not sure if this works if quickRestarting
+            try
             {
-                Logger.Log(CelesteBotInteropModule.ModLogKey, "Unloading Input because Player was either null or dead!");
-                // Player is dead, let's remove for the next player
-                Remove();
+                Player p = Celeste.Celeste.Scene.Tracker.GetEntity<Player>();
+                if (p.Dead || p == null) // Not sure if this works if quickRestarting
+                {
+                    Logger.Log(CelesteBotInteropModule.ModLogKey, "Player is either null or dead, but NOT removing!");
+                }
+            } catch (NullReferenceException e)
+            {
+                // Game has yet to load, wait a bit. The Celeste.Celeste.Scene does not exist.
             }
         }
         public void Remove()

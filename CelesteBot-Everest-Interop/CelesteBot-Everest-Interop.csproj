@@ -69,8 +69,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CelesteBotInteropModule.cs" />
+    <Compile Include="CelesteBotManager.cs" />
     <Compile Include="CelesteBotModuleSettings.cs" />
     <Compile Include="CelesteProxies.cs" />
+    <Compile Include="InputData.cs" />
+    <Compile Include="InputNodes.cs" />
+    <Compile Include="InputPlayer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
