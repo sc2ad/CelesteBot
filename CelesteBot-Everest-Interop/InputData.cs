@@ -20,21 +20,20 @@ namespace CelesteBot_Everest_Interop
         ///This constructor uses the actions float array to create virtual inputs from the actions.
         ///Refrenced from CelesteBotPlayer
         ///</summary>
-        ///<param name="actions"actions array with length 10.</param>
-        
+        ///<param name="actions"actions array with length 6.</param>
         public InputData(float[] actions)
         {
             MoveX = Math.Abs(actions[0]) > CelesteBotManager.ACTION_THRESHOLD ? actions[0] : 0;
             MoveY = Math.Abs(actions[1]) > CelesteBotManager.ACTION_THRESHOLD ? actions[1] : 0;
 
-            this.ESC = actions[2] > CelesteBotManager.ACTION_THRESHOLD;
-            this.MenuConfirm = actions[3] > CelesteBotManager.ACTION_THRESHOLD;
-            this.MenuCancel = actions[4] > CelesteBotManager.ACTION_THRESHOLD;
-            this.QuickRestart = actions[5] > CelesteBotManager.ACTION_THRESHOLD;
-            this.Jump = actions[6] > CelesteBotManager.ACTION_THRESHOLD;
-            this.Dash = actions[7] > CelesteBotManager.ACTION_THRESHOLD;
-            this.Grab = actions[8] > CelesteBotManager.ACTION_THRESHOLD;
-            this.Talk = actions[9] > CelesteBotManager.ACTION_THRESHOLD;
+            //this.ESC = actions[2] > CelesteBotManager.ACTION_THRESHOLD;
+            //this.MenuConfirm = actions[3] > CelesteBotManager.ACTION_THRESHOLD;
+            //this.MenuCancel = actions[4] > CelesteBotManager.ACTION_THRESHOLD;
+            //this.QuickRestart = actions[5] > CelesteBotManager.ACTION_THRESHOLD;
+            this.Jump = actions[2] > CelesteBotManager.ACTION_THRESHOLD;
+            this.Dash = actions[3] > CelesteBotManager.ACTION_THRESHOLD;
+            this.Grab = actions[4] > CelesteBotManager.ACTION_THRESHOLD;
+            this.Talk = actions[5] > CelesteBotManager.ACTION_THRESHOLD;
         }
 
         public InputData() { }

@@ -87,20 +87,33 @@ namespace CelesteBot_Everest_Interop
                 original();
                 return;
             }
+            InputData temp = new InputData();
+            if (inputPlayer.LastData.QuickRestart)
+            {
+                temp.MenuConfirm = true;
+                inputPlayer.UpdateData(temp);
+                return;
+            }
             kbState = Keyboard.GetState();
+            
             if (IsKeyDown(Keys.OemBackslash))
             {
                 state = State.Running;
-                inputPlayer.Data = new InputData(new float[] { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0 });
+                temp.MoveX = 1;
             } else if (IsKeyDown(Keys.OemQuotes))
             {
                 state = State.Running;
-                inputPlayer.Data = new InputData(new float[] { -1, 0, 0, 0, 0, 0, 0, 0, 0, 0 });
-            } else
+                temp.MoveX = -1;
+            } else if (IsKeyDown(Keys.OemPeriod))
             {
                 state = State.Disabled;
-                inputPlayer.Data = new InputData(new float[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 });
+                temp.QuickRestart = true;
             }
+            else
+            {
+                state = State.Disabled;
+            }
+            inputPlayer.UpdateData(temp);
             original();
         }
         public static void Engine_Update(On.Monocle.Engine.orig_Update original, Engine self, GameTime gameTime)
