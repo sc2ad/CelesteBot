@@ -53,7 +53,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CelestePlayer.cs" />
+    <Compile Include="GeneConnection.cs" />
+    <Compile Include="ConnectionHistory.cs" />
+    <Compile Include="Genome.cs" />
     <Compile Include="Manager.cs" />
+    <Compile Include="Node.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
