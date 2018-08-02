@@ -13,34 +13,23 @@ namespace CelesteBot_Everest_Interop
 {
     public class CelestePlayer
     {
-        float fitness = -1; // Default so that it is known when fitness isn't calculated
-        float unadjustedFitness;
-        Genome brain;
-        ArrayList replayActions = new ArrayList();
         int[,] Vision2D = new int[CelesteBotManager.VISION_2D_X_SIZE, CelesteBotManager.VISION_2D_Y_SIZE];
-        float[] vision = new float[CelesteBotManager.INPUTS];
-        float[] actions = new float[CelesteBotManager.OUTPUTS];
-        int lifespan = 0;
-        bool dead = false;
-        bool replay = false;
-        int gen = 0;
-        String name;
-        String speciesName = "Not yet defined";
         Player player;
         Vector2 startPos = new Vector2(0,0);
 
-        public float Fitness { get => fitness; set => fitness = value; }
-        public float UnadjustedFitness { get => unadjustedFitness; set => unadjustedFitness = value; }
-        public Genome Brain { get => brain; set => brain = value; }
-        public ArrayList ReplayActions { get => replayActions; set => replayActions = value; }
-        public float[] Vision { get => vision; set => vision = value; }
-        public float[] Actions { get => actions; set => actions = value; }
-        public int Lifespan { get => lifespan; set => lifespan = value; }
-        public bool Dead { get => dead; set => dead = value; }
-        public bool Replay { get => replay; set => replay = value; }
-        public int Gen { get => gen; set => gen = value; }
-        public string Name { get => name; set => name = value; }
-        public string SpeciesName { get => speciesName; set => speciesName = value; }
+        public float Fitness = -1;
+        public float UnadjustedFitness;
+        public Genome Brain;
+        public ArrayList ReplayActions = new ArrayList();
+        public float[] Vision = new float[CelesteBotManager.INPUTS];
+        public float[] Actions = new float[CelesteBotManager.OUTPUTS];
+        public int Lifespan = 0;
+        public bool Dead = false;
+        public bool Replay = false;
+        public int Gen = 0;
+        public int TimeWhileStuck = 0;
+        public string Name;
+        public string SpeciesName = "Not yet defined";
 
         public CelestePlayer()
         {
@@ -48,15 +37,12 @@ namespace CelesteBot_Everest_Interop
             //Name = CelesteBotManager.GetUniqueOrganismName();
 
         }
-        void move()
-        {
-            // Need to output controller inputs here.
-            // The controller then does the actions to 'move' the player.
-            Lifespan++;
-
-        }
         public void Update()
         {
+            if (Dead)
+            {
+                return;
+            }
             if (player == null)
             {
                 try
@@ -70,8 +56,24 @@ namespace CelesteBot_Everest_Interop
                 startPos = player.Center;
             }
             UpdateVision();
-            
-            
+            Look();
+            Think();
+
+            if (player.Speed.X == 0 /*need to incorporate y here, maybe dist to goal here as well*/)
+            {
+                TimeWhileStuck++;
+            }
+            if (TimeWhileStuck / Celeste.Celeste.FPS > CelesteBotInteropModule.Settings.TimeStuckThreshold)
+            {
+                // Kill the player because it hasn't moved for awhile
+                Dead = true;
+                // Actual reset happens in CelesteBotInteropModule
+            }
+            if (TimeWhileStuck > 0) {
+                TimeWhileStuck--; // Resets TimeWhileStuck if it starts moving again!
+            }
+
+            Lifespan++;
             // Also calculate live fitness here. The fitness should weight distance to goal, then time it takes to get there.
             // It might also be easier to apply some sort of fitness based off of velocity of character (that way the faster it goes, the higher the fitness it has)
             // But make sure that making it to the end is still highest priority.
@@ -114,15 +116,14 @@ namespace CelesteBot_Everest_Interop
             }
             Vision2D = outInts;
         }
-        void look()
+        void Look()
         {
             if (player == null)
             {
-                dead = true;
+                Dead = true;
                 return;
             }
             // Updates vision array with proper values each frame
-            // LAST STEP!
             /*
             Inputs: PlayerX, PlayerY, PlayerXSpeed, PlayerYSpeed, <INPUTS FROM VISUALIZATION OF GAME>
             IT IS ALSO POSSIBLE THAT X AND Y ARE UNNEEDED, AS THE VISUALIZATION INPUTS MAY BE ENOUGH
@@ -141,18 +142,18 @@ namespace CelesteBot_Everest_Interop
                 }
             }
             Vision[CelesteBotManager.VISION_2D_Y_SIZE * CelesteBotManager.VISION_2D_X_SIZE] = player.BottomCenter.X;
-            Vision[CelesteBotManager.VISION_2D_Y_SIZE * CelesteBotManager.VISION_2D_X_SIZE] = player.BottomCenter.Y;
-            Vision[CelesteBotManager.VISION_2D_Y_SIZE * CelesteBotManager.VISION_2D_X_SIZE] = player.Speed.X;
-            Vision[CelesteBotManager.VISION_2D_Y_SIZE * CelesteBotManager.VISION_2D_X_SIZE] = player.Speed.Y;
-            Vision[CelesteBotManager.VISION_2D_Y_SIZE * CelesteBotManager.VISION_2D_X_SIZE] = player.CanDash ? 1 : 0;
+            Vision[CelesteBotManager.VISION_2D_Y_SIZE * CelesteBotManager.VISION_2D_X_SIZE + 1] = player.BottomCenter.Y;
+            Vision[CelesteBotManager.VISION_2D_Y_SIZE * CelesteBotManager.VISION_2D_X_SIZE + 2] = player.Speed.X;
+            Vision[CelesteBotManager.VISION_2D_Y_SIZE * CelesteBotManager.VISION_2D_X_SIZE + 3] = player.Speed.Y;
+            Vision[CelesteBotManager.VISION_2D_Y_SIZE * CelesteBotManager.VISION_2D_X_SIZE + 4] = player.CanDash ? 1 : 0;
 
         }
         // Updates controller inputs based on neural network output
-        void think()
+        void Think()
         {
             if (player == null)
             {
-                dead = true;
+                Dead = true;
                 return;
             }
             //get the output of the neural network
@@ -173,11 +174,19 @@ namespace CelesteBot_Everest_Interop
             }
 
             CelesteBotInteropModule.inputPlayer.UpdateData(new InputData(Actions)); // Updates inputs to reflect neural network results
+            string test = "Attempted Actions: [";
+            for (int i = 0; i < Actions.Length; i++)
+            {
+                test += Actions[i] + ", ";
+            }
+            test += "]";
+            Logger.Log(CelesteBotInteropModule.ModLogKey, test);
+            Logger.Log(CelesteBotInteropModule.ModLogKey, "Attempted Input: " + new InputData(Actions));
             // Need to convert actions float values into controller inputs here.
             // Then needs to return controller inputs so that the player can move
         }
         // Clones CelestePlayer
-        CelestePlayer clone()
+        CelestePlayer Clone()
         {
             CelestePlayer outp = new CelestePlayer();
             outp.Replay = false;
@@ -187,7 +196,7 @@ namespace CelesteBot_Everest_Interop
             return outp;
         }
         // Clones for replaying
-        CelestePlayer cloneForReplay()
+        CelestePlayer CloneForReplay()
         {
             CelestePlayer outp = new CelestePlayer();
             outp.ReplayActions = (ArrayList)ReplayActions.Clone();
@@ -200,26 +209,30 @@ namespace CelesteBot_Everest_Interop
             return outp;
         }
         // Calculates fitness
-        void calculateFitness()
+        void CalculateFitness()
         {
             // The closer it gets to the goal the better.
             // The faster it gets to the goal (or overall faster it travels) the better.
-            int dx = 1; // temp
-
-            Fitness = (2 * dx) * (2 * dx) + Lifespan;
+            if (player == null)
+            {
+                Dead = true;
+                return;
+            }
+            // The further it gets to the goal the better, the lifespan decreases.
+            Fitness = (((player.BottomCenter - startPos).Length() * (player.BottomCenter - startPos).Length()) + 2 / (Lifespan * Lifespan));
             // MODIFY!
         }
         // Getter method for fitness (rarely used)
-        float getFitness()
+        float GetFitness()
         {
             if (Fitness < 0)
             {
-                calculateFitness();
+                CalculateFitness();
             }
             return Fitness;
         }
         // Crossover function - less fit parent is parent2
-        CelestePlayer crossover(CelestePlayer parent2)
+        CelestePlayer Crossover(CelestePlayer parent2)
         {
             CelestePlayer child = new CelestePlayer();
 
@@ -250,7 +263,7 @@ namespace CelesteBot_Everest_Interop
             outp += ", " + Brain + ">";
             return outp;
         }
-        public static CelestePlayer playerFromString(String str)
+        public static CelestePlayer PlayerFromString(String str)
         {
             try
             {

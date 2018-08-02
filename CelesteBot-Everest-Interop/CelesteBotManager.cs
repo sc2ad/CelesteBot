@@ -16,7 +16,7 @@ namespace CelesteBot_Everest_Interop
         
         public static int VISION_2D_X_SIZE = 5;
         public static int VISION_2D_Y_SIZE = 5;
-        public static int INPUTS = VISION_2D_X_SIZE * VISION_2D_Y_SIZE + 0;
+        public static int INPUTS = VISION_2D_X_SIZE * VISION_2D_Y_SIZE + 5;
         public static int OUTPUTS = 6;
 
 

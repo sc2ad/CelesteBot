@@ -146,7 +146,21 @@ namespace CelesteBot_Everest_Interop
                     Buttons |= (int)ButtonMask.Talk;
             }
         }
-
+        public override String ToString()
+        {
+            string outp = "InputData: (x,y): (" + MoveX + ", " + MoveY + ") + buttons: (";
+            string[] names = Enum.GetNames(typeof(ButtonMask));
+            System.Array values = Enum.GetValues(typeof(ButtonMask));
+            for (int i = 0; i < names.Length; i++)
+            {
+                if ((Buttons & (int)values.GetValue(i)) == (int)values.GetValue(i))
+                {
+                    outp += names[i] + ", ";
+                }
+            }
+            outp += ")";
+            return outp;
+        }
 
 
 

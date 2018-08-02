@@ -11,5 +11,6 @@ namespace CelesteBot_Everest_Interop
     {
         public bool Enabled { get; set; } = true;
         public bool DrawAlways { get; set; } = true;
+        public int TimeStuckThreshold { get; set; } = 4;
     }
 }

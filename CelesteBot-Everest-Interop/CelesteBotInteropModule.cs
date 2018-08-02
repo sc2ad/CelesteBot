@@ -122,6 +122,10 @@ namespace CelesteBot_Everest_Interop
             if (state == State.Running)
             {
                 tempPlayer.Update();
+                if (tempPlayer.Dead)
+                {
+                    temp.QuickRestart = true;
+                }
             }
             inputPlayer.UpdateData(temp);
             original();
