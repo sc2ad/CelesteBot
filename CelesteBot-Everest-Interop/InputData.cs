@@ -81,6 +81,19 @@ namespace CelesteBot_Everest_Interop
                     Buttons |= (int)ButtonMask.MenuCancel;
             }
         }
+        public bool MenuDown
+        {
+            get
+            {
+                return (Buttons & (int)ButtonMask.MenuDown) == (int)ButtonMask.MenuDown;
+            }
+            set
+            {
+                Buttons &= (int)~ButtonMask.MenuDown;
+                if (value)
+                    Buttons |= (int)ButtonMask.MenuDown;
+            }
+        }
         public bool QuickRestart
         {
             get
@@ -171,10 +184,11 @@ namespace CelesteBot_Everest_Interop
             QuickRestart = 1 << 2,
             MenuConfirm = 1 << 3,
             MenuCancel = 1 << 4,
-            Jump = 1 << 5,
-            Dash = 1 << 6,
-            Grab = 1 << 7,
-            Talk = 1 << 8 // shouldn't really be needed
+            MenuDown = 1 << 5,
+            Jump = 1 << 6,
+            Dash = 1 << 7,
+            Grab = 1 << 8,
+            Talk = 1 << 9 // shouldn't really be needed
         }
     }
 }

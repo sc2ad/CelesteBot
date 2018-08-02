@@ -93,13 +93,22 @@ namespace CelesteBot_Everest_Interop
                 original();
                 return;
             }
-            InputData temp = new InputData();
-            if (inputPlayer.LastData.QuickRestart)
+            if (CelesteBotManager.CompleteRestart(inputPlayer))
             {
-                temp.MenuConfirm = true;
-                inputPlayer.UpdateData(temp);
                 return;
             }
+            if (CelesteBotManager.CheckForCutsceneSkip(inputPlayer))
+            {
+                return;
+            }
+            if (CelesteBotManager.CompleteCutsceneSkip(inputPlayer))
+            {
+                return;
+            }// test
+            
+            InputData temp = new InputData();
+            
+            // If in cutscene skip state, skip it the rest of the way.
             kbState = Keyboard.GetState();
             
             if (IsKeyDown(Keys.OemBackslash))
@@ -114,6 +123,10 @@ namespace CelesteBot_Everest_Interop
             {
                 state = State.Disabled;
                 temp.QuickRestart = true;
+            } else if (IsKeyDown(Keys.OemComma))
+            {
+                state = State.Disabled;
+                temp.ESC = true;
             }
             else
             {
@@ -125,6 +138,10 @@ namespace CelesteBot_Everest_Interop
                 if (tempPlayer.Dead)
                 {
                     temp.QuickRestart = true;
+                } else
+                {
+                    original();
+                    return;
                 }
             }
             inputPlayer.UpdateData(temp);
@@ -132,6 +149,7 @@ namespace CelesteBot_Everest_Interop
         }
         public static void Engine_Update(On.Monocle.Engine.orig_Update original, Engine self, GameTime gameTime)
         {
+            Celeste.Celeste.FPS = Settings.FPS; // Maybe?
             original(self, gameTime);
         }
         public static void OnScene_Transition(On.Celeste.Celeste.orig_OnSceneTransition original, Celeste.Celeste self, Scene last, Scene next)

@@ -172,7 +172,8 @@ namespace CelesteBot_Everest_Interop
                     Actions[i] = tArr[i];
                 }
             }
-
+            // PLACEHOLER
+            Actions = new float[] { 1, 0, 0, 0, 0, 0 };
             CelesteBotInteropModule.inputPlayer.UpdateData(new InputData(Actions)); // Updates inputs to reflect neural network results
             string test = "Attempted Actions: [";
             for (int i = 0; i < Actions.Length; i++)

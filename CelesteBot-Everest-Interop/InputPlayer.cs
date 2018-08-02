@@ -39,6 +39,7 @@ namespace CelesteBot_Everest_Interop
             Input.QuickRestart.Nodes.Add(new InputNodes.Button(this, InputData.ButtonMask.QuickRestart));
             Input.MenuConfirm.Nodes.Add(new InputNodes.Button(this, InputData.ButtonMask.MenuConfirm));
             Input.MenuCancel.Nodes.Add(new InputNodes.Button(this, InputData.ButtonMask.MenuCancel));
+            Input.MenuDown.Nodes.Add(new InputNodes.Button(this, InputData.ButtonMask.MenuDown));
             Input.Jump.Nodes.Add(new InputNodes.Button(this, InputData.ButtonMask.Jump));
             Input.Dash.Nodes.Add(new InputNodes.Button(this, InputData.ButtonMask.Dash));
             Input.Grab.Nodes.Add(new InputNodes.Button(this, InputData.ButtonMask.Grab));
