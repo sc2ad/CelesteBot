@@ -80,6 +80,24 @@ namespace CelesteBot_Everest_Interop
 
         public static void Engine_Draw(On.Monocle.Engine.orig_Draw original, Engine self, GameTime time)
         {
+            // THIS IS FOR FPS LIMITING. IT IS LIKELY NOT GOING TO WORK.
+            /*
+            self.RenderCore();
+            self.Draw(time);
+            if (Engine.Commands.Open)
+            {
+                Engine.Commands.Render();
+            }
+            self.fpsCounter++;
+            self.counterElapsed += time.ElapsedGameTime;
+            if (self.counterElapsed >= TimeSpan.FromSeconds(1.0))
+            {
+                Engine.FPS = self.fpsCounter;
+                self.fpsCounter = 0;
+                self.counterElapsed -= TimeSpan.FromSeconds(1.0);
+            }
+            //original(self, time);
+            */
             original(self, time);
             if (state == State.Running || Settings.DrawAlways) {
                 CelesteBotManager.Draw();
@@ -127,6 +145,10 @@ namespace CelesteBot_Everest_Interop
             {
                 state = State.Disabled;
                 temp.ESC = true;
+            } else if (IsKeyDown(Keys.OemQuestion))
+            {
+                state = State.Disabled;
+                tempPlayer = new CelestePlayer();
             }
             else
             {
@@ -149,6 +171,7 @@ namespace CelesteBot_Everest_Interop
         }
         public static void Engine_Update(On.Monocle.Engine.orig_Update original, Engine self, GameTime gameTime)
         {
+            Monocle.Engine.FPS = Settings.FPS; // Maybe?
             Celeste.Celeste.FPS = Settings.FPS; // Maybe?
             original(self, gameTime);
         }
