@@ -31,6 +31,8 @@ namespace CelesteBot_Everest_Interop
         public string Name;
         public string SpeciesName = "Not yet defined";
 
+        private Vector2 LastPlayerPos = new Vector2(0, 0);
+
         public CelestePlayer()
         {
             Brain = new Genome(CelesteBotManager.INPUTS, CelesteBotManager.OUTPUTS);
@@ -58,19 +60,20 @@ namespace CelesteBot_Everest_Interop
             UpdateVision();
             Look();
             Think();
-
-            if (player.Speed.X == 0 /*need to incorporate y here, maybe dist to goal here as well*/)
+            /*need to incorporate y here, maybe dist to goal here as well*/
+            if (player.Speed.X == 0 || player.BottomCenter == LastPlayerPos)
             {
                 TimeWhileStuck++;
+            } else if (TimeWhileStuck > 0)
+            {
+                TimeWhileStuck--;// Resets TimeWhileStuck if it starts moving again!
             }
+            Logger.Log(CelesteBotInteropModule.ModLogKey, "Time: " + TimeWhileStuck + " Thresh: " + (TimeWhileStuck / Celeste.Celeste.FPS) + " ? " + CelesteBotInteropModule.Settings.TimeStuckThreshold);
             if (TimeWhileStuck / Celeste.Celeste.FPS > CelesteBotInteropModule.Settings.TimeStuckThreshold)
             {
                 // Kill the player because it hasn't moved for awhile
                 Dead = true;
                 // Actual reset happens in CelesteBotInteropModule
-            }
-            if (TimeWhileStuck > 0) {
-                TimeWhileStuck--; // Resets TimeWhileStuck if it starts moving again!
             }
 
             Lifespan++;
@@ -80,6 +83,7 @@ namespace CelesteBot_Everest_Interop
 
             // Also update the various parameters the player has here.
             // Ex: Player x, Player y, Player vx, Player vy, vision (?)
+            LastPlayerPos = player.BottomCenter;
         }
         public void SetupVision()
         {
@@ -103,8 +107,8 @@ namespace CelesteBot_Everest_Interop
             Level level = (Level)Celeste.Celeste.Scene;
 
             Vector2 tileUnder = TileFinder.GetTileXY(new Vector2(player.X, player.Y+4));
-            Logger.Log(CelesteBotInteropModule.ModLogKey, "Tile Under Player: (" + tileUnder.X + ", " + tileUnder.Y + ")");
-            Logger.Log(CelesteBotInteropModule.ModLogKey, "(X,Y) Under Player: (" + player.X + ", " + (player.Y + 4) + ")");
+            //Logger.Log(CelesteBotInteropModule.ModLogKey, "Tile Under Player: (" + tileUnder.X + ", " + tileUnder.Y + ")");
+            //Logger.Log(CelesteBotInteropModule.ModLogKey, "(X,Y) Under Player: (" + player.X + ", " + (player.Y + 4) + ")");
             int[,] outInts = new int[visionX, visionY];
             for (int i = 0; i < visionY; i++)
             {
