@@ -56,6 +56,7 @@ namespace CelesteBot_Everest_Interop
             On.Monocle.Engine.Draw += Engine_Draw;
             On.Monocle.Engine.Update += Engine_Update;
             On.Monocle.MInput.Update += MInput_Update;
+            On.Celeste.Celeste.OnSceneTransition += OnScene_Transition;
 
             Logger.Log(ModLogKey, "Load successful");
         }
@@ -73,6 +74,7 @@ namespace CelesteBot_Everest_Interop
             On.Monocle.Engine.Draw -= Engine_Draw;
             On.Monocle.Engine.Update -= Engine_Update;
             On.Monocle.MInput.Update -= MInput_Update;
+            On.Celeste.Celeste.OnSceneTransition -= OnScene_Transition;
             Logger.Log(ModLogKey, "Unload successful");
         }
 
@@ -83,6 +85,7 @@ namespace CelesteBot_Everest_Interop
                 CelesteBotManager.Draw();
             }
         }
+        
         public static void MInput_Update(On.Monocle.MInput.orig_Update original)
         {
             if (!Settings.Enabled)
@@ -126,6 +129,12 @@ namespace CelesteBot_Everest_Interop
         public static void Engine_Update(On.Monocle.Engine.orig_Update original, Engine self, GameTime gameTime)
         {
             original(self, gameTime);
+        }
+        public static void OnScene_Transition(On.Celeste.Celeste.orig_OnSceneTransition original, Celeste.Celeste self, Scene last, Scene next)
+        {
+            original(self, last, next);
+            tempPlayer.SetupVision();
+            TileFinder.GetAllEntities();
         }
     }
 }

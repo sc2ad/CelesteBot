@@ -1,6 +1,7 @@
 ﻿using Celeste;
 using Celeste.Mod;
 using Microsoft.Xna.Framework;
+using Monocle;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -16,7 +17,7 @@ namespace CelesteBot_Everest_Interop
         float unadjustedFitness;
         Genome brain;
         ArrayList replayActions = new ArrayList();
-        float[,] Vision2D = new float[CelesteBotManager.VISION_2D_X_SIZE, CelesteBotManager.VISION_2D_Y_SIZE];
+        int[,] Vision2D = new int[CelesteBotManager.VISION_2D_X_SIZE, CelesteBotManager.VISION_2D_Y_SIZE];
         float[] vision = new float[CelesteBotManager.INPUTS];
         float[] actions = new float[CelesteBotManager.OUTPUTS];
         int lifespan = 0;
@@ -68,7 +69,7 @@ namespace CelesteBot_Everest_Interop
                 }
                 startPos = player.Center;
             }
-            SetupVision();
+            UpdateVision();
             
             
             // Also calculate live fitness here. The fitness should weight distance to goal, then time it takes to get there.
@@ -78,32 +79,40 @@ namespace CelesteBot_Everest_Interop
             // Also update the various parameters the player has here.
             // Ex: Player x, Player y, Player vx, Player vy, vision (?)
         }
-        private void SetupVision()
+        public void SetupVision()
+        {
+            try
+            {
+                //TileFinder.TilesOffset = Celeste.Celeste.Scene.Entities.FindFirst<SolidTiles>().Center; // Thanks KDT#7539!
+                TileFinder.SetupOffset();
+            } catch (NullReferenceException e)
+            {
+                // The Scene hasn't been created yet.
+            }
+        }
+        
+        private void UpdateVision()
         {
             int visionX = CelesteBotManager.VISION_2D_X_SIZE;
             int visionY = CelesteBotManager.VISION_2D_Y_SIZE;
             int underYIndex = visionY / 2 + 1;
             int underXIndex = visionX / 2;
-            Level level = (Level)Celeste.Celeste.Scene;
-            int indexx = 0;
-            int indexy = 0;
-            char test = level.SolidsData[indexx, indexy];
 
-            //Vector2 tileUnder = GetTileUnderPlayer();
-            //int[,] outInts = new int[visionX, visionY];
-            //for (int i = 0; i < visionY; i++)
-            //{
-            //    for (int j = 0; j < visionX; j++)
-            //    {
-            //        int temp = IsWall(new Vector2(tileUnder.X - underXIndex + j, tileUnder.Y - underYIndex + i)) ? 1 : 0;
-            //        if (temp == 0)
-            //        {
-            //            temp = GetEntityFromXYCenter(GetXYCenterFromTile(new Vector2(tileUnder.X - underXIndex + j, tileUnder.Y - underYIndex + i))) != null ? 1 : 0;
-            //        }
-            //        outInts[i, j] = temp;
-            //    }
-            //}
-            Logger.Log(CelesteBotInteropModule.ModLogKey, "Tile at: (" + indexx + ", " + indexy + ") has value: " + test);
+            Level level = (Level)Celeste.Celeste.Scene;
+
+            Vector2 tileUnder = TileFinder.GetTileXY(new Vector2(player.X, player.Y+4));
+            Logger.Log(CelesteBotInteropModule.ModLogKey, "Tile Under Player: (" + tileUnder.X + ", " + tileUnder.Y + ")");
+            Logger.Log(CelesteBotInteropModule.ModLogKey, "(X,Y) Under Player: (" + player.X + ", " + (player.Y + 4) + ")");
+            int[,] outInts = new int[visionX, visionY];
+            for (int i = 0; i < visionY; i++)
+            {
+                for (int j = 0; j < visionX; j++)
+                {
+                    int temp = TileFinder.IsWallAtTile(new Vector2(tileUnder.X - underXIndex + j, tileUnder.Y - underYIndex + i)) ? 1 : 0;
+                    outInts[i, j] = temp;
+                }
+            }
+            Vision2D = outInts;
         }
         void look()
         {
@@ -124,6 +133,19 @@ namespace CelesteBot_Everest_Interop
             //Vision[1] = (float)y / ((float)height);
             //Vision[2] = Math.Abs(vx); // might not want abs?
             //Vision[3] = vy;
+            for (int i = 0; i < CelesteBotManager.VISION_2D_X_SIZE; i++)
+            {
+                for (int j = 0; j < CelesteBotManager.VISION_2D_Y_SIZE; j++)
+                {
+                    Vision[i * CelesteBotManager.VISION_2D_Y_SIZE + j] = Vision2D[i, j];
+                }
+            }
+            Vision[CelesteBotManager.VISION_2D_Y_SIZE * CelesteBotManager.VISION_2D_X_SIZE] = player.BottomCenter.X;
+            Vision[CelesteBotManager.VISION_2D_Y_SIZE * CelesteBotManager.VISION_2D_X_SIZE] = player.BottomCenter.Y;
+            Vision[CelesteBotManager.VISION_2D_Y_SIZE * CelesteBotManager.VISION_2D_X_SIZE] = player.Speed.X;
+            Vision[CelesteBotManager.VISION_2D_Y_SIZE * CelesteBotManager.VISION_2D_X_SIZE] = player.Speed.Y;
+            Vision[CelesteBotManager.VISION_2D_Y_SIZE * CelesteBotManager.VISION_2D_X_SIZE] = player.CanDash ? 1 : 0;
+
         }
         // Updates controller inputs based on neural network output
         void think()
