@@ -9,7 +9,7 @@ namespace CelesteBot_Everest_Interop
 {
     public class CelesteBotManager
     {
-        public static float ACTION_THRESHOLD = 0.7f;
+        public static float ACTION_THRESHOLD = 0.55f;
         public static float RE_RANDOMIZE_WEIGHT_CHANCE = 0.2f;
         public static double WEIGHT_MUTATION_CHANCE = 0.8;
         public static double ADD_CONNECTION_CHANCE = 0.1;
@@ -26,12 +26,6 @@ namespace CelesteBot_Everest_Interop
         public static Vector2 NODE_LABEL_SCALE = new Vector2(0.2f, 0.2f);
         public static Vector2 TEXT_OFFSET = new Vector2(7, 7);
 
-        private static string activeText = "Vision:\n";
-        private static Vector2 FontScale = new Vector2(0.4f, 0.4f);
-        private static Vector2 textPos = new Vector2(20f, 30f);
-
-        public static string ActiveText { get => activeText; set => activeText = value; }
-
         public static bool Cutscene = false;
 
         public static void Draw()
@@ -43,21 +37,18 @@ namespace CelesteBot_Everest_Interop
             Monocle.Draw.SpriteBatch.Begin();
             try
             {
-                Monocle.Draw.Rect(textPos.X - 10, textPos.Y - 8, viewWidth - 20f, 40f, Color.Black * 0.8f);
-                ActiveFont.Draw(
-                    ActiveText,
-                    new Vector2(textPos.X, textPos.Y),
-                    Vector2.Zero,
-                    FontScale,
-                    Color.White);
+                
                 if (CelesteBotInteropModule.DrawPlayer)
                 {
                     DrawPlayer(CelesteBotInteropModule.tempPlayer);
                 }
+                if (CelesteBotInteropModule.DrawFitness)
+                {
+                    DrawFitness(CelesteBotInteropModule.tempPlayer);
+                }
             }
             catch (NullReferenceException e)
             {
-                Logger.Log(CelesteBotInteropModule.ModLogKey, "Failed to draw text: " + ActiveText);
                 // The game has yet to finish loading, just don't draw text for now.
             }
             Monocle.Draw.SpriteBatch.End();
@@ -145,7 +136,7 @@ namespace CelesteBot_Everest_Interop
             for (int i = 0; i < p.Brain.Layers; i++)
             {
                 ArrayList nodesInLayer = new ArrayList();
-                foreach (Node n in p.Brain.network)
+                foreach (Node n in p.Brain.Nodes)
                 {
                     if (n.Layer == i)
                     {
@@ -178,8 +169,8 @@ namespace CelesteBot_Everest_Interop
             {
                 GeneConnection temp = (GeneConnection)p.Brain.Genes[i];
                 Color color = temp.Weight > 0 ? GENE_POSITIVE_COLOR : GENE_NEGATIVE_COLOR; // Sets color of gene. 
-                Vector2 fromLoc = new Vector2(-1, -1);
-                Vector2 toLoc = new Vector2(-1, -1);
+                Vector2 fromLoc = new Vector2(1000, 1000);
+                Vector2 toLoc = new Vector2(1000, 1000);
                 // Finds Node positions that match Ids of the GeneConnection
                 foreach (ArrayList a in nodes2d)
                 {
@@ -207,10 +198,34 @@ namespace CelesteBot_Everest_Interop
             {
                 foreach (Node n in a)
                 {
-                    Monocle.Draw.Circle(n.DrawPos, NODE_RADIUS, Color.White, 100);
-                    ActiveFont.Draw(Convert.ToString(n.Id), new Vector2(n.DrawPos.X - TEXT_OFFSET.X, n.DrawPos.Y - TEXT_OFFSET.Y), Vector2.Zero, NODE_LABEL_SCALE, Color.White);
+                    float thickness = 1;
+                    Color color = Color.White;
+                    float highVal = 0;
+                    float lowVal = 0;
+                    if (n.Layer == p.Brain.Layers-1)
+                    {
+                        // This is an output Node. Need to check the threshold instead.
+                        highVal = ACTION_THRESHOLD;
+                        lowVal = -ACTION_THRESHOLD; // Never red when outputting (except for x, and y)
+                    }
+                    if (n.OutputValue > highVal)
+                    {
+                        thickness = 3;
+                        color = Color.DarkGreen;
+                    } else if (n.OutputValue < lowVal)
+                    {
+                        thickness = 3;
+                        color = Color.DarkRed;
+                    }
+                    Monocle.Draw.Circle(n.DrawPos, NODE_RADIUS, color, thickness, 100);
+                    ActiveFont.Draw(Convert.ToString(n.Id), new Vector2(n.DrawPos.X - TEXT_OFFSET.X, n.DrawPos.Y - TEXT_OFFSET.Y), Vector2.Zero, NODE_LABEL_SCALE, color);
                 }
             }
+        }
+        public static void DrawFitness(CelestePlayer p)
+        {
+            Monocle.Draw.Rect(0f, 0f, 500f, 30f, Color.Black * 0.8f);
+            ActiveFont.Draw(Convert.ToString(p.GetFitness()), new Vector2(10,10), Color.White);
         }
     }
 }

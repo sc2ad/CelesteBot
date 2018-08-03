@@ -209,7 +209,7 @@ namespace CelesteBot_Everest_Interop
                 }
                 Layers++;
             }
-            ConnectNodes(); // Reconnect the Nodes after this has been created
+            GenerateNetwork(); // Reconnect the Nodes after this has been created
         }
 
         // Adds a connection between 2 nodes which aren't currently connected

@@ -31,7 +31,7 @@ namespace CelesteBot_Everest_Interop
         public string Name;
         public string SpeciesName = "Not yet defined";
 
-        private Vector2 LastPlayerPos = new Vector2(0, 0);
+        private Vector2 MaxPlayerPos = new Vector2(-10000, -10000);
 
         public CelestePlayer()
         {
@@ -55,13 +55,16 @@ namespace CelesteBot_Everest_Interop
                     Logger.Log(CelesteBotInteropModule.ModLogKey, "Player has not been created yet, or is null for some other reason.");
                     return;
                 }
-                startPos = player.Center;
+                if (!player.Dead)
+                {
+                    startPos = player.BottomCenter;
+                }
             }
             UpdateVision();
             Look();
             Think();
             /*need to incorporate y here, maybe dist to goal here as well*/
-            if (player.Speed.X == 0 || player.BottomCenter == LastPlayerPos)
+            if (player.Speed.X == 0 || player.BottomCenter.X <= MaxPlayerPos.X)
             {
                 TimeWhileStuck++;
             } else if (TimeWhileStuck > 0)
@@ -83,7 +86,11 @@ namespace CelesteBot_Everest_Interop
 
             // Also update the various parameters the player has here.
             // Ex: Player x, Player y, Player vx, Player vy, vision (?)
-            LastPlayerPos = player.BottomCenter;
+            if (player.BottomCenter.X > MaxPlayerPos.X)
+            {
+                MaxPlayerPos = player.BottomCenter;
+            }
+            //LastPlayerPos = player.BottomCenter;
         }
         public void SetupVision()
         {
@@ -177,7 +184,7 @@ namespace CelesteBot_Everest_Interop
                 }
             }
             // PLACEHOLER
-            Actions = new float[] { 1, 0, 0, 0, 0, 0 };
+            //Actions = new float[] { 1, 0, 0, 0, 0, 0 };
             CelesteBotInteropModule.inputPlayer.UpdateData(new InputData(Actions)); // Updates inputs to reflect neural network results
             string test = "Attempted Actions: [";
             for (int i = 0; i < Actions.Length; i++)
@@ -191,7 +198,7 @@ namespace CelesteBot_Everest_Interop
             // Then needs to return controller inputs so that the player can move
         }
         // Clones CelestePlayer
-        CelestePlayer Clone()
+        public CelestePlayer Clone()
         {
             CelestePlayer outp = new CelestePlayer();
             outp.Replay = false;
@@ -201,7 +208,7 @@ namespace CelesteBot_Everest_Interop
             return outp;
         }
         // Clones for replaying
-        CelestePlayer CloneForReplay()
+        public CelestePlayer CloneForReplay()
         {
             CelestePlayer outp = new CelestePlayer();
             outp.ReplayActions = (ArrayList)ReplayActions.Clone();
@@ -214,13 +221,12 @@ namespace CelesteBot_Everest_Interop
             return outp;
         }
         // Calculates fitness
-        void CalculateFitness()
+        public void CalculateFitness()
         {
             // The closer it gets to the goal the better.
             // The faster it gets to the goal (or overall faster it travels) the better.
             if (player == null)
             {
-                Dead = true;
                 return;
             }
             // The further it gets to the goal the better, the lifespan decreases.
@@ -228,7 +234,7 @@ namespace CelesteBot_Everest_Interop
             // MODIFY!
         }
         // Getter method for fitness (rarely used)
-        float GetFitness()
+        public float GetFitness()
         {
             if (Fitness < 0)
             {
@@ -237,7 +243,7 @@ namespace CelesteBot_Everest_Interop
             return Fitness;
         }
         // Crossover function - less fit parent is parent2
-        CelestePlayer Crossover(CelestePlayer parent2)
+        public CelestePlayer Crossover(CelestePlayer parent2)
         {
             CelestePlayer child = new CelestePlayer();
 
