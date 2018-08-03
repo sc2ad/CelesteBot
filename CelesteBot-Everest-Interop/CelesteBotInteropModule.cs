@@ -32,6 +32,8 @@ namespace CelesteBot_Everest_Interop
         public static CelestePlayer tempPlayer;
         public static ArrayList innovationHistory = new ArrayList();
 
+        public static bool DrawPlayer = false;
+
         private static State state = State.None;
         [Flags]
         private enum State
@@ -139,6 +141,9 @@ namespace CelesteBot_Everest_Interop
             {
                 state = State.Disabled;
                 GeneratePlayer();
+            } else if (IsKeyDown(Keys.OemOpenBrackets))
+            {
+                DrawPlayer = !DrawPlayer;
             }
             else
             {

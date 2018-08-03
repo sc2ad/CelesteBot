@@ -35,7 +35,7 @@ namespace CelesteBot_Everest_Interop
             {
                 Node temp = new Node(i);
                 temp.Layer = 0;
-                Nodes.Add(new Node(i));
+                Nodes.Add(temp);
                 NextNode++;
             }
 
@@ -44,16 +44,15 @@ namespace CelesteBot_Everest_Interop
             {
                 Node temp = new Node(i + Inputs);
                 temp.Layer = 1;
-                Nodes.Add(new Node(i + Inputs));
+                Nodes.Add(temp);
                 NextNode++;
             }
             // Creates bias Node: Node ID is: inputs+outputs
-            Nodes.Add(new Node(NextNode));
+            bNode = new Node(NextNode);
+            bNode.Layer = 0; // Bias Node part of input
+            Nodes.Add(bNode);
             BiasNode = NextNode;
             NextNode++;
-            Node bNode = (Node)Nodes[BiasNode];
-            bNode.Layer = 0; // Bias Node part of input layer
-            this.bNode = bNode;
         }
 
         // Create an empty genome, used for crossover

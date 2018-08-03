@@ -3,6 +3,7 @@ using Celeste.Mod;
 using Microsoft.Xna.Framework;
 using Monocle;
 using System;
+using System.Collections;
 
 namespace CelesteBot_Everest_Interop
 {
@@ -19,6 +20,11 @@ namespace CelesteBot_Everest_Interop
         public static int INPUTS = VISION_2D_X_SIZE * VISION_2D_Y_SIZE + 5;
         public static int OUTPUTS = 6;
 
+        public static Color GENE_POSITIVE_COLOR = Color.Red;
+        public static Color GENE_NEGATIVE_COLOR = Color.Blue;
+        public static int NODE_RADIUS = 10;
+        public static Vector2 NODE_LABEL_SCALE = new Vector2(0.2f, 0.2f);
+        public static Vector2 TEXT_OFFSET = new Vector2(7, 7);
 
         private static string activeText = "Vision:\n";
         private static Vector2 FontScale = new Vector2(0.4f, 0.4f);
@@ -44,7 +50,10 @@ namespace CelesteBot_Everest_Interop
                     Vector2.Zero,
                     FontScale,
                     Color.White);
-                
+                if (CelesteBotInteropModule.DrawPlayer)
+                {
+                    DrawPlayer(CelesteBotInteropModule.tempPlayer);
+                }
             }
             catch (NullReferenceException e)
             {
@@ -52,10 +61,6 @@ namespace CelesteBot_Everest_Interop
                 // The game has yet to finish loading, just don't draw text for now.
             }
             Monocle.Draw.SpriteBatch.End();
-        }
-        public static void CheckForRestart()
-        {
-
         }
         public static bool CompleteCutsceneSkip(InputPlayer inputPlayer)
         {
@@ -124,6 +129,88 @@ namespace CelesteBot_Everest_Interop
                 return true;
             }
             return false;
+        }
+        public static void DrawPlayer(CelestePlayer p)
+        {
+            int x = 100;
+            int y = 200;
+            int w = 600;
+            int h = 600;
+
+            Logger.Log(CelesteBotInteropModule.ModLogKey, p.ToString());
+
+            Monocle.Draw.Rect(x, y, w, h, Color.Black * 0.8f); // Draws background
+
+            ArrayList nodes2d = new ArrayList();
+            for (int i = 0; i < p.Brain.Layers; i++)
+            {
+                ArrayList nodesInLayer = new ArrayList();
+                foreach (Node n in p.Brain.network)
+                {
+                    if (n.Layer == i)
+                    {
+                        nodesInLayer.Add(n);
+                    }
+                }
+                nodes2d.Add(nodesInLayer);
+            }
+
+            double dx = (double)w / (double)(p.Brain.Layers+1);
+            x += (int)dx;
+            // Sets drawing positions for all Nodes
+            for (int i = 0; i < nodes2d.Count; i++)
+            {
+                int drawX = x + (int)(dx * i);
+                ArrayList a = (ArrayList)nodes2d[i];
+                double dy = (double)h / (double)a.Count;
+                int drawY = y;
+                for (int j = 0; j < a.Count; j++)
+                {
+                    drawY += (int)dy;
+                    Node temp = (Node)a[j];
+                    temp.DrawPos = new Vector2(drawX, drawY);
+                    a[j] = temp;
+                }
+            }
+
+            // Draws all genes between Node positions
+            for (int i = 0; i < p.Brain.Genes.Count; i++)
+            {
+                GeneConnection temp = (GeneConnection)p.Brain.Genes[i];
+                Color color = temp.Weight > 0 ? GENE_POSITIVE_COLOR : GENE_NEGATIVE_COLOR; // Sets color of gene. 
+                Vector2 fromLoc = new Vector2(-1, -1);
+                Vector2 toLoc = new Vector2(-1, -1);
+                // Finds Node positions that match Ids of the GeneConnection
+                foreach (ArrayList a in nodes2d)
+                {
+                    foreach (Node n in a)
+                    {
+                        if (n.Id == temp.FromNode.Id)
+                        {
+                            fromLoc = n.DrawPos;
+                        }
+                        else if (n.Id == temp.ToNode.Id)
+                        {
+                            toLoc = n.DrawPos;
+                        }
+                    }
+                }
+                if (fromLoc.X < 0 && toLoc.X < 0)
+                {
+                    continue;
+                }
+                Monocle.Draw.Line(fromLoc, toLoc, color);
+            }
+
+            // Draws all of the Nodes in order
+            foreach (ArrayList a in nodes2d)
+            {
+                foreach (Node n in a)
+                {
+                    Monocle.Draw.Circle(n.DrawPos, NODE_RADIUS, Color.White, 100);
+                    ActiveFont.Draw(Convert.ToString(n.Id), new Vector2(n.DrawPos.X - TEXT_OFFSET.X, n.DrawPos.Y - TEXT_OFFSET.Y), Vector2.Zero, NODE_LABEL_SCALE, Color.White);
+                }
+            }
         }
     }
 }
