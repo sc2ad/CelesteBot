@@ -33,6 +33,7 @@ namespace CelesteBot_Everest_Interop
         public static ArrayList innovationHistory = new ArrayList();
 
         public static bool DrawPlayer = false;
+        public static bool DrawFitness = true;
 
         private static State state = State.None;
         [Flags]
@@ -166,7 +167,6 @@ namespace CelesteBot_Everest_Interop
         }
         public static void Engine_Update(On.Monocle.Engine.orig_Update original, Engine self, GameTime gameTime)
         {
-            Celeste.Celeste.FPS = Settings.FPS; // Maybe?
             original(self, gameTime);
         }
         public static void OnScene_Transition(On.Celeste.Celeste.orig_OnSceneTransition original, Celeste.Celeste self, Scene last, Scene next)
