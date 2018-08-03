@@ -127,6 +127,10 @@ namespace CelesteBot_Everest_Interop
             {
                 state = State.Disabled;
                 temp.ESC = true;
+            } else if (IsKeyDown(Keys.OemQuestion))
+            {
+                state = State.Disabled;
+                tempPlayer = new CelestePlayer();
             }
             else
             {
