@@ -8,6 +8,7 @@ using MonoMod;
 using MonoMod.RuntimeDetour;
 using MonoMod.Utils;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -28,7 +29,8 @@ namespace CelesteBot_Everest_Interop
 
         public static string ModLogKey = "celeste-bot";
 
-        private static CelestePlayer tempPlayer;
+        public static CelestePlayer tempPlayer;
+        public static ArrayList innovationHistory = new ArrayList();
 
         private static State state = State.None;
         [Flags]
@@ -67,7 +69,13 @@ namespace CelesteBot_Everest_Interop
             // Hey, InputPlayer should be made to work without removing self when players die
             inputPlayer = new InputPlayer(Celeste.Celeste.Instance, new InputData()); // Blank InputData when constructing. Overwrite it when needing to update inputs
             Celeste.Celeste.Instance.Components.Add(inputPlayer);
+            GeneratePlayer();
+        }
+        public static void GeneratePlayer()
+        {
             tempPlayer = new CelestePlayer();
+            tempPlayer.Brain.GenerateNetwork();
+            tempPlayer.Brain.Mutate(innovationHistory);
         }
         public override void Unload()
         {
@@ -130,7 +138,7 @@ namespace CelesteBot_Everest_Interop
             } else if (IsKeyDown(Keys.OemQuestion))
             {
                 state = State.Disabled;
-                tempPlayer = new CelestePlayer();
+                GeneratePlayer();
             }
             else
             {
