@@ -32,8 +32,10 @@ namespace CelesteBot_Everest_Interop
         public static CelestePlayer tempPlayer;
         public static ArrayList innovationHistory = new ArrayList();
 
-        public static bool DrawPlayer = false;
-        public static bool DrawFitness = true;
+        public static bool DrawPlayer { get { return !ShowNothing && Settings.ShowPlayerBrain; } set { } }
+        public static bool DrawFitness { get { return !ShowNothing && Settings.ShowPlayerFitness; } set { } }
+        public static bool DrawDetails { get { return !ShowNothing && Settings.ShowDetailedPlayerInfo; } set { } }
+        public static bool ShowNothing = false;
 
         private static State state = State.None;
         [Flags]
@@ -142,9 +144,9 @@ namespace CelesteBot_Everest_Interop
             {
                 state = State.Disabled;
                 GeneratePlayer();
-            } else if (IsKeyDown(Keys.OemOpenBrackets))
+            } else if (IsKeyDown(Keys.N))
             {
-                DrawPlayer = !DrawPlayer;
+                ShowNothing = !ShowNothing;
             }
             else
             {

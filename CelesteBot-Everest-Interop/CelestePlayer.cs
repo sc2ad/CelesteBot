@@ -14,7 +14,7 @@ namespace CelesteBot_Everest_Interop
     public class CelestePlayer
     {
         int[,] Vision2D = new int[CelesteBotManager.VISION_2D_X_SIZE, CelesteBotManager.VISION_2D_Y_SIZE];
-        Player player;
+        public Player player;
         Vector2 startPos = new Vector2(0,0);
 
         public float Fitness = -1;
@@ -235,16 +235,13 @@ namespace CelesteBot_Everest_Interop
                 return;
             }
             // The further it gets to the goal the better, the lifespan decreases.
-            Fitness = (((player.BottomCenter - startPos).Length() * (player.BottomCenter - startPos).Length()) + 2 / (Lifespan * Lifespan));
+            Fitness = (((MaxPlayerPos - startPos).Length()) + 2 / (Lifespan * Lifespan));
             // MODIFY!
         }
         // Getter method for fitness (rarely used)
         public float GetFitness()
         {
-            if (Fitness < 0)
-            {
-                CalculateFitness();
-            }
+            CalculateFitness();
             return Fitness;
         }
         // Crossover function - less fit parent is parent2

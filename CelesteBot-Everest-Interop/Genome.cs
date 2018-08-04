@@ -246,7 +246,7 @@ namespace CelesteBot_Everest_Interop
             // Gets the innovation number of this new connection
             int connectionInnovationNumber = GetInnovationNumber(innovationHistory, node1, node2);
             // Add the connection with a random weight
-            Genes.Add(new GeneConnection(node1, node2, (float)(rand.NextDouble() - 0.5) * 2, connectionInnovationNumber));
+            Genes.Add(new GeneConnection(node1, node2, (float)(rand.NextDouble() - 0.5) * (float)(CelesteBotManager.WEIGHT_MAXIMUM * 2), connectionInnovationNumber));
             ConnectNodes(); // Reconnect the Nodes
         }
 

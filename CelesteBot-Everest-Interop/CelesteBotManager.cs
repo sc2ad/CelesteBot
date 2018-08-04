@@ -14,14 +14,17 @@ namespace CelesteBot_Everest_Interop
         public static double WEIGHT_MUTATION_CHANCE = 0.8;
         public static double ADD_CONNECTION_CHANCE = 0.1;
         public static double ADD_NODE_CHANCE = 0.01;
+
+        public static double WEIGHT_MAXIMUM = 5; // Max magnitude a weight can be (+- this number)
         
         public static int VISION_2D_X_SIZE = 5;
         public static int VISION_2D_Y_SIZE = 5;
         public static int INPUTS = VISION_2D_X_SIZE * VISION_2D_Y_SIZE + 5;
         public static int OUTPUTS = 6;
 
-        public static Color GENE_POSITIVE_COLOR = Color.Red;
-        public static Color GENE_NEGATIVE_COLOR = Color.Blue;
+        public static Color GENE_POSITIVE_COLOR = Color.DarkGreen;
+        public static Color GENE_NEGATIVE_COLOR = Color.Red;
+        public static double THICKNESS_SCALE = 5; // How much the thickness increases per increase of 1 in the weight when drawing genes
         public static int NODE_RADIUS = 10;
         public static Vector2 NODE_LABEL_SCALE = new Vector2(0.2f, 0.2f);
         public static Vector2 TEXT_OFFSET = new Vector2(7, 7);
@@ -37,7 +40,7 @@ namespace CelesteBot_Everest_Interop
             Monocle.Draw.SpriteBatch.Begin();
             try
             {
-                
+                DrawStandard(CelesteBotInteropModule.tempPlayer);
                 if (CelesteBotInteropModule.DrawPlayer)
                 {
                     DrawPlayer(CelesteBotInteropModule.tempPlayer);
@@ -45,6 +48,10 @@ namespace CelesteBot_Everest_Interop
                 if (CelesteBotInteropModule.DrawFitness)
                 {
                     DrawFitness(CelesteBotInteropModule.tempPlayer);
+                }
+                if (CelesteBotInteropModule.DrawDetails)
+                {
+                    DrawDetails(CelesteBotInteropModule.tempPlayer);
                 }
             }
             catch (NullReferenceException e)
@@ -176,6 +183,7 @@ namespace CelesteBot_Everest_Interop
                 Color color = temp.Weight > 0 ? GENE_POSITIVE_COLOR : GENE_NEGATIVE_COLOR; // Sets color of gene. 
                 Vector2 fromLoc = new Vector2(10000, 10000);
                 Vector2 toLoc = new Vector2(10000, 10000);
+                int thickness = (int)(Math.Abs(temp.Weight) * THICKNESS_SCALE) + 1;
                 // Finds Node positions that match Ids of the GeneConnection
                 foreach (ArrayList a in nodes2d)
                 {
@@ -201,7 +209,7 @@ namespace CelesteBot_Everest_Interop
                     Logger.Log(CelesteBotInteropModule.ModLogKey, "Could not find Node: " + temp.ToNode.ToString() + " in Nodes array!");
                     //continue;
                 }
-                Monocle.Draw.Line(fromLoc, toLoc, color);
+                Monocle.Draw.Line(fromLoc, toLoc, color, thickness);
             }
 
             // Draws all of the Nodes in order
@@ -233,10 +241,23 @@ namespace CelesteBot_Everest_Interop
                 }
             }
         }
+
+        // These should all contain variables in the near future
+
         public static void DrawFitness(CelestePlayer p)
         {
+            Monocle.Draw.Rect(0f, 30f, 500f, 30f, Color.Black * 0.8f);
+            ActiveFont.Draw(Convert.ToString(p.GetFitness()), new Vector2(3,30), Vector2.Zero, new Vector2(0.5f, 0.5f), Color.White);
+        }
+        public static void DrawStandard(CelestePlayer p)
+        {
             Monocle.Draw.Rect(0f, 0f, 500f, 30f, Color.Black * 0.8f);
-            ActiveFont.Draw(Convert.ToString(p.GetFitness()), new Vector2(10,10), Vector2.Zero, new Vector2(0.5f, 0.5f), Color.White);
+            ActiveFont.Draw("Gen: " + p.Gen + " Species: " + p.SpeciesName + " Organism: " + p.Name, new Vector2(3, 0), Vector2.Zero, new Vector2(0.45f, 0.45f), Color.White);
+        }
+        public static void DrawDetails(CelestePlayer p)
+        {
+            Monocle.Draw.Rect(0f, 60f, 500f, 30f, Color.Black * 0.8f);
+            ActiveFont.Draw("(X: " + p.player.BottomCenter.X + ", Y: " + p.player.BottomCenter.Y + "), (Vx: " + p.player.Speed.X + ", Vy: " + p.player.Speed.Y + "), Dashes: " + p.player.Dashes + ", Stamina: " + p.player.Stamina, new Vector2(3,60), Vector2.Zero, new Vector2(0.4f, 0.4f), Color.White);
         }
     }
 }
