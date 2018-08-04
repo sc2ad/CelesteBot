@@ -29,7 +29,11 @@ namespace CelesteBot_Everest_Interop
 
         public static string ModLogKey = "celeste-bot";
 
-        public static CelestePlayer tempPlayer;
+        public static Population population;
+        public static CelestePlayer CurrentPlayer;
+
+        private static int buffer = 0; // The number of frames to wait when setting a new current player
+
         public static ArrayList innovationHistory = new ArrayList();
 
         public static bool DrawPlayer { get { return !ShowNothing && Settings.ShowPlayerBrain; } set { } }
@@ -74,14 +78,16 @@ namespace CelesteBot_Everest_Interop
             // Hey, InputPlayer should be made to work without removing self when players die
             inputPlayer = new InputPlayer(Celeste.Celeste.Instance, new InputData()); // Blank InputData when constructing. Overwrite it when needing to update inputs
             Celeste.Celeste.Instance.Components.Add(inputPlayer);
-            GeneratePlayer();
+            population = new Population(CelesteBotManager.POPULATION_SIZE);
+            //GeneratePlayer();
+            CurrentPlayer = population.GetCurrentPlayer();
         }
-        public static void GeneratePlayer()
-        {
-            tempPlayer = new CelestePlayer();
-            tempPlayer.Brain.GenerateNetwork();
-            tempPlayer.Brain.Mutate(innovationHistory);
-        }
+        //public static void GeneratePlayer()
+        //{
+        //    CurrentPlayer = new CelestePlayer();
+        //    CurrentPlayer.Brain.GenerateNetwork();
+        //    CurrentPlayer.Brain.Mutate(innovationHistory);
+        //}
         public override void Unload()
         {
             On.Monocle.Engine.Draw -= Engine_Draw;
@@ -127,11 +133,9 @@ namespace CelesteBot_Everest_Interop
             if (IsKeyDown(Keys.OemBackslash))
             {
                 state = State.Running;
-                temp.MoveX = 1;
             } else if (IsKeyDown(Keys.OemQuotes))
             {
                 state = State.Running;
-                temp.MoveX = -1;
             } else if (IsKeyDown(Keys.OemPeriod))
             {
                 state = State.Disabled;
@@ -143,7 +147,7 @@ namespace CelesteBot_Everest_Interop
             } else if (IsKeyDown(Keys.OemQuestion))
             {
                 state = State.Disabled;
-                GeneratePlayer();
+                //GeneratePlayer();
             } else if (IsKeyDown(Keys.N))
             {
                 ShowNothing = !ShowNothing;
@@ -154,14 +158,36 @@ namespace CelesteBot_Everest_Interop
             }
             if (state == State.Running)
             {
-                tempPlayer.Update();
-                if (tempPlayer.Dead)
+                if (!population.Done())
                 {
-                    temp.QuickRestart = true;
-                } else
-                {
+                    if (buffer > 0)
+                    {
+                        buffer--;
+                        original();
+                        inputPlayer.UpdateData(temp);
+                        return;
+                    }
+                    // Run the population till they die
+                    population.UpdateAlive();
+                    CurrentPlayer = population.GetCurrentPlayer();
+                    if (CurrentPlayer.Dead && CurrentPlayer.player.InControl && !CurrentPlayer.player.JustRespawned)
+                    {
+                        temp.QuickRestart = true;
+                        buffer = CelesteBotManager.PLAYER_GRACE_BUFFER; // sets the buffer to desired wait time... magic
+                        population.CurrentIndex++;
+                        if (population.CurrentIndex >= population.Pop.Count)
+                        {
+                            Logger.Log(CelesteBotInteropModule.ModLogKey, "Population Current Index out of bounds, performing evolution...");
+                            return;
+                        }
+                        inputPlayer.UpdateData(temp);
+                    }
                     original();
                     return;
+                } else
+                {
+                    // Do some checkpointing here maybe
+                    population.NaturalSelection();
                 }
             }
             inputPlayer.UpdateData(temp);
@@ -174,7 +200,7 @@ namespace CelesteBot_Everest_Interop
         public static void OnScene_Transition(On.Celeste.Celeste.orig_OnSceneTransition original, Celeste.Celeste self, Scene last, Scene next)
         {
             original(self, last, next);
-            tempPlayer.SetupVision();
+            CurrentPlayer.SetupVision();
             TileFinder.GetAllEntities();
         }
     }

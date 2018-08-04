@@ -163,7 +163,7 @@ namespace CelesteBot_Everest_Interop
                 // Add a Connection from previous Genomes
                 return;
             }
-            Random rand = new Random();
+            Random rand = new Random(Guid.NewGuid().GetHashCode());
             int randomConnection = rand.Next(Genes.Count);
 
             GeneConnection temp = (GeneConnection)Genes[randomConnection];
@@ -222,7 +222,7 @@ namespace CelesteBot_Everest_Interop
                 Logger.Log(CelesteBotInteropModule.ModLogKey, "Cannot add a connection because the network is fully connected!");
                 return;
             }
-            Random rand = new Random();
+            Random rand = new Random(Guid.NewGuid().GetHashCode());
             // Get random nodes
             int randomNode1 = rand.Next(Nodes.Count);
             int randomNode2 = rand.Next(Nodes.Count);
@@ -267,6 +267,11 @@ namespace CelesteBot_Everest_Interop
         {
             // nextConnectionNumber is a public, global variable because all the Genomes should share innovationNumber Uniqueness.
             // In other words, all the different Genomes could mutate unique innovationNumbers, but that should be reflected.
+            if (from == null || to == null)
+            {
+                Logger.Log(CelesteBotInteropModule.ModLogKey, "WAIT HOW DID THIS HAPPEN!?");
+                Logger.Log(CelesteBotInteropModule.ModLogKey, innovationHistory.ToString());
+            }
             bool isNew = true;
             int connectionInnovationNumber = ConnectionHistory.NextConnectionInnovationNumber;
             foreach (ConnectionHistory h in innovationHistory)
@@ -286,7 +291,7 @@ namespace CelesteBot_Everest_Interop
                 { // Set the innovation numbers
                     currentGenomeState.Add(g.InnovationNo);
                 }
-
+                
                 // Then add this unique Connection to innovationHistory
                 innovationHistory.Add(new ConnectionHistory(from.Id, to.Id, connectionInnovationNumber, currentGenomeState));
                 ConnectionHistory.NextConnectionInnovationNumber++;
@@ -334,7 +339,7 @@ namespace CelesteBot_Everest_Interop
                 AddConnection(innovationHistory);
             }
             // Randomly choose to mutate the weight
-            Random rand = new Random();
+            Random rand = new Random(Guid.NewGuid().GetHashCode());
             double rand1 = rand.NextDouble();
             if (rand1 < CelesteBotManager.WEIGHT_MUTATION_CHANCE)
             {
@@ -355,6 +360,7 @@ namespace CelesteBot_Everest_Interop
             {
                 AddNode(innovationHistory);
             }
+            Logger.Log(CelesteBotInteropModule.ModLogKey, Genes[0].ToString()+" r1: "+rand1+" r2: "+rand2+" r3: "+rand3);
         }
 
         // Performs crossover, assuming that this Genome is more fit than the other Genome
@@ -370,7 +376,7 @@ namespace CelesteBot_Everest_Interop
                                                     // Remove this array soon...
             ArrayList isEnabled = new ArrayList();  // All of the enabled/disabled Nodes (because why would I make each Node have an enabled/disabled tag...)
 
-            Random random = new Random();
+            Random random = new Random(Guid.NewGuid().GetHashCode());
             // All genes
             foreach (GeneConnection g in Genes)
             {
@@ -422,6 +428,7 @@ namespace CelesteBot_Everest_Interop
                 child.Genes.Add(g.Clone(child.GetNode(g.FromNode.Id), child.GetNode(g.ToNode.Id)));
                 g.Enabled = (bool)isEnabled[i]; // Please remove this
             }
+            child.bNode = child.GetNode(child.BiasNode);
             child.ConnectNodes();
             return child;
         }

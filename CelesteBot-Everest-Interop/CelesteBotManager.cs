@@ -29,6 +29,12 @@ namespace CelesteBot_Everest_Interop
         public static Vector2 NODE_LABEL_SCALE = new Vector2(0.2f, 0.2f);
         public static Vector2 TEXT_OFFSET = new Vector2(7, 7);
 
+        // POPULATION PARAMETERS
+        public static int EXTINCTION_SAVE_TOP = 5; // How many species to save when a mass extinction occurs
+        public static int POPULATION_SIZE = 10;
+
+        public static int PLAYER_GRACE_BUFFER = 120; // How long between restarts should the next player be created
+
         public static bool Cutscene = false;
 
         public static void Draw()
@@ -40,18 +46,18 @@ namespace CelesteBot_Everest_Interop
             Monocle.Draw.SpriteBatch.Begin();
             try
             {
-                DrawStandard(CelesteBotInteropModule.tempPlayer);
+                DrawStandard(CelesteBotInteropModule.CurrentPlayer);
                 if (CelesteBotInteropModule.DrawPlayer)
                 {
-                    DrawPlayer(CelesteBotInteropModule.tempPlayer);
+                    DrawPlayer(CelesteBotInteropModule.CurrentPlayer);
                 }
                 if (CelesteBotInteropModule.DrawFitness)
                 {
-                    DrawFitness(CelesteBotInteropModule.tempPlayer);
+                    DrawFitness(CelesteBotInteropModule.CurrentPlayer);
                 }
                 if (CelesteBotInteropModule.DrawDetails)
                 {
-                    DrawDetails(CelesteBotInteropModule.tempPlayer);
+                    DrawDetails(CelesteBotInteropModule.CurrentPlayer);
                 }
             }
             catch (NullReferenceException e)
@@ -138,7 +144,6 @@ namespace CelesteBot_Everest_Interop
             Logger.Log(CelesteBotInteropModule.ModLogKey, p.ToString());
 
             Monocle.Draw.Rect(x, y, w, h, Color.Black * 0.8f); // Draws background
-            Logger.Log(CelesteBotInteropModule.ModLogKey, "PLEASE PLEASE PLEASE " + p.Brain.Nodes[p.Brain.Nodes.Count - 1].ToString());
 
             ArrayList nodes2d = new ArrayList();
             for (int i = 0; i < p.Brain.Layers; i++)

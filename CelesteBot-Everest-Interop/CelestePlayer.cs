@@ -50,26 +50,26 @@ namespace CelesteBot_Everest_Interop
                 try
                 {
                     player = Celeste.Celeste.Scene.Tracker.GetEntity<Player>();
+                    if (!player.Dead)
+                    {
+                        startPos = player.BottomCenter;
+                    }
                 } catch (NullReferenceException e)
                 {
                     Logger.Log(CelesteBotInteropModule.ModLogKey, "Player has not been created yet, or is null for some other reason.");
                     return;
-                }
-                if (!player.Dead)
-                {
-                    startPos = player.BottomCenter;
                 }
             }
             UpdateVision();
             Look();
             Think();
             /*need to incorporate y here, maybe dist to goal here as well*/
-            if (player.Speed.X == 0 || player.BottomCenter.X <= MaxPlayerPos.X)
+            if ((player.Speed.X == 0 || player.BottomCenter.X <= MaxPlayerPos.X) && !player.JustRespawned)
             {
                 TimeWhileStuck++;
             } else if (TimeWhileStuck > 0)
             {
-                TimeWhileStuck--;// Resets TimeWhileStuck if it starts moving again!
+                TimeWhileStuck = 0;// Resets TimeWhileStuck if it starts moving again!
             }
             Logger.Log(CelesteBotInteropModule.ModLogKey, "Time: " + TimeWhileStuck + " Thresh: " + (TimeWhileStuck / Celeste.Celeste.FPS) + " ? " + CelesteBotInteropModule.Settings.TimeStuckThreshold);
             if (TimeWhileStuck / Celeste.Celeste.FPS > CelesteBotInteropModule.Settings.TimeStuckThreshold)
@@ -111,8 +111,15 @@ namespace CelesteBot_Everest_Interop
             int visionY = CelesteBotManager.VISION_2D_Y_SIZE;
             int underYIndex = visionY / 2 + 1;
             int underXIndex = visionX / 2;
-
-            Level level = (Level)Celeste.Celeste.Scene;
+            try
+            {
+                Level level = (Level)Celeste.Celeste.Scene;
+            } catch (InvalidCastException e)
+            {
+                // This means we tried to cast a LevelExit to a Level. It basically means we are dead.
+                Dead = true;
+                return;
+            }
 
             Vector2 tileUnder = TileFinder.GetTileXY(new Vector2(player.X, player.Y+4));
             //Logger.Log(CelesteBotInteropModule.ModLogKey, "Tile Under Player: (" + tileUnder.X + ", " + tileUnder.Y + ")");
