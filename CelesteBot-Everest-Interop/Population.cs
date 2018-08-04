@@ -117,13 +117,15 @@ namespace CelesteBot_Everest_Interop
             for (int j = 0; j < Species.Count; j++)
             {//for each species
                 Species s = (Species)Species[j];
-                //println("Name: " + s.name);
-                //println("best unadjusted fitness:", s.bestFitness);
+                Logger.Log(CelesteBotInteropModule.ModLogKey, "Species: " + j + " with Name: " + s.Name + " has best fitness: " + s.BestFitness);
+                string playerStr = "";
                 for (int i = 0; i < s.Players.Count; i++)
                 {
-                    //print("CelestePlayer " + i + ":", "fitness: " + s.players.get(i).fitness, "score " + s.players.get(i).score, ' ');
+                    CelestePlayer p = (CelestePlayer)s.Players[i];
+                    playerStr += "Player: " + i + ": " + p.Name + " with fitness: " + p.Fitness+", ";
                 }
-                //println();
+                Logger.Log(CelesteBotInteropModule.ModLogKey, "With Players: "+playerStr);
+
                 CelestePlayer c = s.Champ.Clone(); // used to be cloneForReplay
                 c.SpeciesName = s.Name;
                 children.Add(c);//add champion without any mutation
@@ -244,7 +246,7 @@ namespace CelesteBot_Everest_Interop
             for (int i = 1; i < Species.Count; i++)
             {
                 Species s = (Species)Species[i];
-                if (s.AverageFitness / averageSum * Pop.Count < 1)
+                if (s.AverageFitness / averageSum * s.Players.Count < 1)
                 {//if wont be given a single child 
                     Species.RemoveAt(i);//sad
                     i--;

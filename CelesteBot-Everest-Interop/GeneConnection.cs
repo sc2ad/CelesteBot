@@ -27,7 +27,7 @@ namespace CelesteBot_Everest_Interop
         // Mutates the weight randomly
         public void MutateWeight()
         {
-            Random rand = new Random();
+            Random rand = new Random(Guid.NewGuid().GetHashCode());
             float rand2 = (float)rand.NextDouble();
             // Completely Re-randomize weight
             if (rand2 < CelesteBotManager.RE_RANDOMIZE_WEIGHT_CHANCE)
@@ -52,7 +52,7 @@ namespace CelesteBot_Everest_Interop
         // Gets a random number following a Gaussian Distribution
         private float RandomGaussian()
         {
-            Random rand = new Random(); //reuse this if you are generating many
+            Random rand = new Random(Guid.NewGuid().GetHashCode()); //reuse this if you are generating many
             double u1 = 1.0 - rand.NextDouble(); //uniform(0,1] random doubles
             double u2 = 1.0 - rand.NextDouble();
             double randStdNormal = Math.Sqrt(-2.0 * Math.Log(u1)) *

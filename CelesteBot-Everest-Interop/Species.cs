@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Celeste.Mod;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -180,7 +181,7 @@ namespace CelesteBot_Everest_Interop
         public CelestePlayer GetOffspring(ArrayList innovationHistory)
         {
             CelestePlayer baby;
-            Random rand = new Random();
+            Random rand = new Random(Guid.NewGuid().GetHashCode());
 
             if (rand.NextDouble() < 0.25)
             {// Punnett square math: 25% of the time there is no crossover and the child is simply a clone of a random(ish) player
@@ -204,6 +205,7 @@ namespace CelesteBot_Everest_Interop
                 }
             }
             baby.Brain.Mutate(innovationHistory);// Mutate offspring brain
+            Logger.Log(CelesteBotInteropModule.ModLogKey, "Species: "+Name+" has a new mutation of Baby when getting offspring");
             return baby;
         }
 
@@ -217,7 +219,7 @@ namespace CelesteBot_Everest_Interop
                 CelestePlayer p = (CelestePlayer)Players[i];
                 fitnessSum += p.GetFitness();
             }
-            Random r = new Random();
+            Random r = new Random(Guid.NewGuid().GetHashCode());
             float rand = (float)(r.NextDouble() * (fitnessSum));
             float runningSum = 0;
 

@@ -152,10 +152,6 @@ namespace CelesteBot_Everest_Interop
             {
                 ShowNothing = !ShowNothing;
             }
-            else
-            {
-                state = State.Disabled;
-            }
             if (state == State.Running)
             {
                 if (!population.Done())
@@ -178,6 +174,7 @@ namespace CelesteBot_Everest_Interop
                         if (population.CurrentIndex >= population.Pop.Count)
                         {
                             Logger.Log(CelesteBotInteropModule.ModLogKey, "Population Current Index out of bounds, performing evolution...");
+                            inputPlayer.UpdateData(temp);
                             return;
                         }
                         inputPlayer.UpdateData(temp);

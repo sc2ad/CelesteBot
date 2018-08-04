@@ -10,10 +10,10 @@ namespace CelesteBot_Everest_Interop
     public class CelesteBotManager
     {
         public static float ACTION_THRESHOLD = 0.55f;
-        public static float RE_RANDOMIZE_WEIGHT_CHANCE = 0.2f;
-        public static double WEIGHT_MUTATION_CHANCE = 0.8;
-        public static double ADD_CONNECTION_CHANCE = 0.1;
-        public static double ADD_NODE_CHANCE = 0.01;
+        public static float RE_RANDOMIZE_WEIGHT_CHANCE = 0.3f;
+        public static double WEIGHT_MUTATION_CHANCE = 0.85;
+        public static double ADD_CONNECTION_CHANCE = 0.3;
+        public static double ADD_NODE_CHANCE = 0.02;
 
         public static double WEIGHT_MAXIMUM = 5; // Max magnitude a weight can be (+- this number)
         
@@ -31,7 +31,7 @@ namespace CelesteBot_Everest_Interop
 
         // POPULATION PARAMETERS
         public static int EXTINCTION_SAVE_TOP = 5; // How many species to save when a mass extinction occurs
-        public static int POPULATION_SIZE = 10;
+        public static int POPULATION_SIZE = 50;
 
         public static int PLAYER_GRACE_BUFFER = 120; // How long between restarts should the next player be created
 
