@@ -121,6 +121,21 @@ namespace CelesteBot_Everest_Interop
                         return true;
                     }
                 }
+                return false;
+            }
+            catch (NullReferenceException e)
+            {
+                return false;
+            }
+            catch (IndexOutOfRangeException e)
+            {
+                return false;
+            }
+        }
+        public static bool IsEntityAtTile(Vector2 tile)
+        {
+            try
+            {
                 EntityList entities = Celeste.Celeste.Scene.Entities;
 
                 for (int i = 0; i < entities.Count; i++)
@@ -131,12 +146,7 @@ namespace CelesteBot_Everest_Interop
                     }
                 }
                 return false;
-            }
-            catch (NullReferenceException e)
-            {
-                return false;
-            }
-            catch (IndexOutOfRangeException e)
+            } catch (NullReferenceException e)
             {
                 return false;
             }

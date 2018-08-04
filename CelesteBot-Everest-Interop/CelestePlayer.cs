@@ -103,7 +103,8 @@ namespace CelesteBot_Everest_Interop
                 // The Scene hasn't been created yet.
             }
         }
-        
+        // 1 for tile (walls), -1 for entities (moving platforms, etc.)
+        // Might add more ex: -2 = dashblox, ... or new Nodes indicating type of entity/tile along with input box
         private void UpdateVision()
         {
             int visionX = CelesteBotManager.VISION_2D_X_SIZE;
@@ -122,6 +123,10 @@ namespace CelesteBot_Everest_Interop
                 for (int j = 0; j < visionX; j++)
                 {
                     int temp = TileFinder.IsWallAtTile(new Vector2(tileUnder.X - underXIndex + j, tileUnder.Y - underYIndex + i)) ? 1 : 0;
+                    if (temp == 0)
+                    {
+                        temp = TileFinder.IsEntityAtTile(new Vector2(tileUnder.X - underXIndex + j, tileUnder.Y - underYIndex + i)) ? -1 : 0;
+                    }
                     outInts[i, j] = temp;
                 }
             }
