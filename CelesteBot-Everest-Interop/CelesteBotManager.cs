@@ -130,19 +130,8 @@ namespace CelesteBot_Everest_Interop
 
             Logger.Log(CelesteBotInteropModule.ModLogKey, p.ToString());
 
-            // OBSERVE THIS P STRING: (8/3/2018 1:03:44 AM) [Everest] [Verbose] [celeste-bot] P<Name:, speciesName:Not yet defined, gen:0, fitness:-1, replay:False, ACTIONS, GENOME<<I:30, O:6, NODE<N<0, 0>, N<1, 0>, N<2, 0>, N<3, 0>, N<4, 0>, N<5, 0>, N<6, 0>, N<7, 0>, N<8, 0>, N<9, 0>, N<10, 0>, N<11, 0>, N<12, 0>, N<13, 0>, N<14, 0>, N<15, 0>, N<16, 0>, N<17, 0>, N<18, 0>, N<19, 0>, N<20, 0>, N<21, 0>, N<22, 0>, N<23, 0>, N<24, 0>, N<25, 0>, N<26, 0>, N<27, 0>, N<28, 0>, N<29, 0>, N<30, 1>, N<31, 1>, N<32, 1>, N<33, 1>, N<34, 1>, N<35, 1>, N<36, 0>, N<37, 2>, >, GENES<G<N<33, 1>, N<14, 0>, W:-0.8720925, I:191, E:False>, G<N<33, 1>, N<37, 2>, W:1, I:200, E:True>, G<N<37, 2>, N<14, 0>, W:-0.8720925, I:201, E:True>, G<N<36, 0>, N<37, 2>, W:0, I:202, E:True>, >, Layers:2, nextNode:38, biasNode:36>>>
-            // New Node: N<37, 2>
-            // GENES<G<N<33, 1>, N<14, 0>, W:-0.8720925, I:191, E:False>, G<N<33, 1>, N<37, 2>, W:1, I:200, E:True>, G<N<37, 2>, N<14, 0>, W:-0.8720925, I:201, E:True>, G<N<36, 0>, N<37, 2>, W:0, I:202, E:True>, >
-            // Layers:2, nextNode:38, biasNode:36>>>
-
-            // Several errors:
-            /* 
-             * 1. Layers = 2, when it should = 3, especially because there are neurons on layers 0, 1, and 2.
-             * 2. New Node was placed on layer = 2, with outputs on layer = 1. These values should instead be switched: output should now be layer = 2, the new Node should be layer = 1
-             * 3. Some GeneConnections are backwards, with the from Node being one or more layers AHEAD of where the to Node is.
-             */
-
             Monocle.Draw.Rect(x, y, w, h, Color.Black * 0.8f); // Draws background
+            Logger.Log(CelesteBotInteropModule.ModLogKey, "PLEASE PLEASE PLEASE " + p.Brain.Nodes[p.Brain.Nodes.Count - 1].ToString());
 
             ArrayList nodes2d = new ArrayList();
             for (int i = 0; i < p.Brain.Layers; i++)
@@ -165,7 +154,7 @@ namespace CelesteBot_Everest_Interop
             {
                 int drawX = x + (int)(dx * i);
                 ArrayList a = (ArrayList)nodes2d[i];
-                double dy = (double)h / (double)a.Count;
+                double dy = (double)h / (double)(a.Count+1);
                 int drawY = y;
                 for (int j = 0; j < a.Count; j++)
                 {
@@ -180,9 +169,13 @@ namespace CelesteBot_Everest_Interop
             for (int i = 0; i < p.Brain.Genes.Count; i++)
             {
                 GeneConnection temp = (GeneConnection)p.Brain.Genes[i];
+                if (!temp.Enabled)
+                {
+                    continue;
+                }
                 Color color = temp.Weight > 0 ? GENE_POSITIVE_COLOR : GENE_NEGATIVE_COLOR; // Sets color of gene. 
-                Vector2 fromLoc = new Vector2(1000, 1000);
-                Vector2 toLoc = new Vector2(1000, 1000);
+                Vector2 fromLoc = new Vector2(10000, 10000);
+                Vector2 toLoc = new Vector2(10000, 10000);
                 // Finds Node positions that match Ids of the GeneConnection
                 foreach (ArrayList a in nodes2d)
                 {
@@ -198,9 +191,15 @@ namespace CelesteBot_Everest_Interop
                         }
                     }
                 }
-                if (fromLoc.X < 0 && toLoc.X < 0)
+                if (fromLoc.X == 10000 && fromLoc.Y == 10000)
                 {
-                    continue;
+                    Logger.Log(CelesteBotInteropModule.ModLogKey, "Could not find Node: " + temp.FromNode.ToString() + " in Nodes array!");
+                    //continue;
+                }
+                if (toLoc.X == 10000 && fromLoc.Y == 10000)
+                {
+                    Logger.Log(CelesteBotInteropModule.ModLogKey, "Could not find Node: " + temp.ToNode.ToString() + " in Nodes array!");
+                    //continue;
                 }
                 Monocle.Draw.Line(fromLoc, toLoc, color);
             }
@@ -237,7 +236,7 @@ namespace CelesteBot_Everest_Interop
         public static void DrawFitness(CelestePlayer p)
         {
             Monocle.Draw.Rect(0f, 0f, 500f, 30f, Color.Black * 0.8f);
-            ActiveFont.Draw(Convert.ToString(p.GetFitness()), new Vector2(10,10), Color.White);
+            ActiveFont.Draw(Convert.ToString(p.GetFitness()), new Vector2(10,10), Vector2.Zero, new Vector2(0.5f, 0.5f), Color.White);
         }
     }
 }

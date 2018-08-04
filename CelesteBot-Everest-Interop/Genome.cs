@@ -176,40 +176,41 @@ namespace CelesteBot_Everest_Interop
             temp.Enabled = false;
 
             int newNodeNo = NextNode; // nextNode is STILL the next ID to add
-            Nodes.Add(new Node(newNodeNo));
+            Node toAdd = new Node(newNodeNo);
             NextNode++;
 
             // Gets the innovationNumber of this new GeneConnection between the input Node and the new Node
-            int connectionInnovationNumber = GetInnovationNumber(innovationHistory, temp.FromNode, GetNode(newNodeNo));
+            int connectionInnovationNumber = GetInnovationNumber(innovationHistory, temp.FromNode, toAdd);
             // Add a new GeneConnection to the new Node with a weight of 1
-            Genes.Add(new GeneConnection(temp.FromNode, GetNode(newNodeNo), 1, connectionInnovationNumber));
+            Genes.Add(new GeneConnection(temp.FromNode, toAdd, 1, connectionInnovationNumber));
 
             // Gets the innovationNumber of this new GeneConnection between the new Node and the output Node
-            connectionInnovationNumber = GetInnovationNumber(innovationHistory, GetNode(newNodeNo), temp.ToNode);
+            connectionInnovationNumber = GetInnovationNumber(innovationHistory, toAdd, temp.ToNode);
 
             // Add a new GeneConnection from the new node with a weight the same as the disabled connection
-            Genes.Add(new GeneConnection(GetNode(newNodeNo), temp.ToNode, temp.Weight, connectionInnovationNumber));
-            GetNode(newNodeNo).Layer = temp.FromNode.Layer + 1; // The original output Node gets shifted down 1 layer
+            Genes.Add(new GeneConnection(toAdd, temp.ToNode, temp.Weight, connectionInnovationNumber));
+            toAdd.Layer = temp.FromNode.Layer + 1; // The original output Node gets shifted down 1 layer
 
             // Gets the innovationNumber of a new GeneConnection between the bias Node and the new Node
-            connectionInnovationNumber = GetInnovationNumber(innovationHistory, bNode, GetNode(newNodeNo));
+            connectionInnovationNumber = GetInnovationNumber(innovationHistory, bNode, toAdd);
             // Connect the bias to the new node with a weight of 0
-            Genes.Add(new GeneConnection(bNode, GetNode(newNodeNo), 0, connectionInnovationNumber));
+            Genes.Add(new GeneConnection(bNode, toAdd, 0, connectionInnovationNumber));
 
             // If the layer of the new Node is equal to the layer of the output Node, a new layer must be created.
             // All of the layers of all of the Nodes with layers >= the new Node's layer must be incremented
-            if (GetNode(newNodeNo).Layer == temp.ToNode.Layer)
+            if (toAdd.Layer == temp.ToNode.Layer)
             {
                 foreach (Node n in Nodes)
                 { // Make sure not to include the new Node (last Node in nodes)
-                    if (n.Layer >= GetNode(newNodeNo).Layer)
+                    if (n.Layer >= toAdd.Layer)
                     {
                         n.Layer++;
                     }
                 }
                 Layers++;
             }
-            GenerateNetwork(); // Reconnect the Nodes after this has been created
+            Nodes.Add(toAdd);
+            ConnectNodes(); // Reconnect the Nodes after this has been created
         }
 
         // Adds a connection between 2 nodes which aren't currently connected
@@ -232,14 +233,14 @@ namespace CelesteBot_Everest_Interop
                 randomNode2 = rand.Next(Nodes.Count);
             }
             // If the first random Node is after the second then switch the first and second Nodes
-            int temp;
+            Node temp;
             Node node1 = (Node)Nodes[randomNode1];
             Node node2 = (Node)Nodes[randomNode2];
             if (node1.Layer > node2.Layer)
             {
-                temp = randomNode2;
-                randomNode2 = randomNode1;
-                randomNode1 = temp;
+                temp = node2;
+                node2 = node1;
+                node1 = temp;
             }
 
             // Gets the innovation number of this new connection
