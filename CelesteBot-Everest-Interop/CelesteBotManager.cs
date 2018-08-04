@@ -13,7 +13,7 @@ namespace CelesteBot_Everest_Interop
         public static float RE_RANDOMIZE_WEIGHT_CHANCE = 0.3f;
         public static double WEIGHT_MUTATION_CHANCE = 0.85;
         public static double ADD_CONNECTION_CHANCE = 0.3;
-        public static double ADD_NODE_CHANCE = 0.02;
+        public static double ADD_NODE_CHANCE = 0.04;
 
         public static double WEIGHT_MAXIMUM = 5; // Max magnitude a weight can be (+- this number)
         

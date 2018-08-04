@@ -140,7 +140,7 @@ namespace CelesteBot_Everest_Interop
 
                 for (int i = 0; i < entities.Count; i++)
                 {
-                    if (entities[i].CollidePoint(RealFromTile(tile)))
+                    if (entities[i].CollidePoint(RealFromTile(tile)) && entities[i].Collidable)
                     {
                         return true;
                     }

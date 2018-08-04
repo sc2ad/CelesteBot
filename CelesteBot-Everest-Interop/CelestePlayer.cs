@@ -50,7 +50,7 @@ namespace CelesteBot_Everest_Interop
                 try
                 {
                     player = Celeste.Celeste.Scene.Tracker.GetEntity<Player>();
-                    if (!player.Dead)
+                    if (!player.Dead && Fitness == -1)
                     {
                         startPos = player.BottomCenter;
                     }

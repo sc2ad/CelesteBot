@@ -41,6 +41,16 @@ namespace CelesteBot_Everest_Interop
         public static bool DrawDetails { get { return !ShowNothing && Settings.ShowDetailedPlayerInfo; } set { } }
         public static bool ShowNothing = false;
 
+        public static bool ShowBest = false;
+        public static bool RunBest = false;
+        public static bool RunThroughSpecies = false;
+        public static int UpToSpecies = 0;
+        public static bool ShowBestEachGen = false;
+        public static int UpToGen = 0;
+
+        public static CelestePlayer SpeciesChamp;
+        public static CelestePlayer GenPlayerTemp;
+
         private static State state = State.None;
         [Flags]
         private enum State
@@ -104,6 +114,13 @@ namespace CelesteBot_Everest_Interop
                 CelesteBotManager.Draw();
             }
         }
+
+        private static void Reset(InputData temp)
+        {
+            temp.QuickRestart = true;
+            buffer = CelesteBotManager.PLAYER_GRACE_BUFFER; // sets the buffer to desired wait time... magic
+            inputPlayer.UpdateData(temp);
+        }
         
         public static void MInput_Update(On.Monocle.MInput.orig_Update original)
         {
@@ -129,7 +146,27 @@ namespace CelesteBot_Everest_Interop
             
             // If in cutscene skip state, skip it the rest of the way.
             kbState = Keyboard.GetState();
-            
+            // Make replaying a thing that happens now
+            if (IsKeyDown(Keys.Space))
+            {
+                ShowBest = !ShowBest;
+            } else if (IsKeyDown(Keys.B))
+            {
+                RunBest = !RunBest;
+            } else if (IsKeyDown(Keys.S))
+            {
+                RunThroughSpecies = !RunThroughSpecies;
+                UpToSpecies = 0;
+                Species s = (Species)population.Species[0];
+                CelestePlayer p = (CelestePlayer)s.Champ;
+                SpeciesChamp = p.CloneForReplay();
+            } else if (IsKeyDown(Keys.G))
+            {
+                ShowBestEachGen = !ShowBestEachGen;
+                UpToGen = 0;
+                CelestePlayer p = (CelestePlayer)population.GenPlayers[0];
+                GenPlayerTemp = p.CloneForReplay();
+            }
             if (IsKeyDown(Keys.OemBackslash))
             {
                 state = State.Running;
@@ -154,37 +191,119 @@ namespace CelesteBot_Everest_Interop
             }
             if (state == State.Running)
             {
-                if (!population.Done())
+                if (buffer > 0)
                 {
-                    if (buffer > 0)
+                    buffer--;
+                    original();
+                    inputPlayer.UpdateData(temp);
+                    return;
+                }
+                if (ShowBestEachGen)
+                {
+                    if (!GenPlayerTemp.Dead)
                     {
-                        buffer--;
+                        GenPlayerTemp.Update();
+                        if (GenPlayerTemp.Dead && GenPlayerTemp.player.InControl && !GenPlayerTemp.player.JustRespawned)
+                        {
+                            Reset(temp);
+                            UpToGen++;
+                            if (UpToGen >= population.GenPlayers.Count)
+                            {
+                                UpToGen = 0;
+                                ShowBestEachGen = false;
+                            }
+                            else
+                            {
+                                GenPlayerTemp = (CelestePlayer)population.GenPlayers[UpToGen];
+                            }
+                        }
+                    }
+                    else
+                    {
+                        Reset(temp);
+                        UpToGen = 0;
+                        ShowBestEachGen = false;
+                    }
+                    return;
+                }
+                else if (RunThroughSpecies)
+                {
+                    if (!SpeciesChamp.Dead)
+                    {
+                        SpeciesChamp.Update();
+                        if (SpeciesChamp.Dead && SpeciesChamp.player.InControl && !SpeciesChamp.player.JustRespawned)
+                        {
+                            Reset(temp);
+                            UpToSpecies++;
+                            if (UpToSpecies >= population.Species.Count)
+                            {
+                                UpToSpecies = 0;
+                                RunThroughSpecies = false;
+                            }
+                            else
+                            {
+                                Species s = (Species)population.Species[UpToSpecies];
+                                SpeciesChamp = s.Champ.CloneForReplay();
+                            }
+                        }
+                    }
+                    else
+                    {
+                        Reset(temp);
+                        UpToSpecies = 0;
+                        RunThroughSpecies = false;
+                    }
+                    return;
+                }
+                else if (RunBest)
+                {
+                    if (!population.BestPlayer.Dead)
+                    {
+                        population.BestPlayer.Update();
+                        if (population.BestPlayer.Dead && population.BestPlayer.player.InControl && !population.BestPlayer.player.JustRespawned)
+                        {
+                            Reset(temp);
+                            RunBest = false;
+                            population.BestPlayer = population.BestPlayer.CloneForReplay();
+                        }
+                    }
+                    else
+                    {
+                        Reset(temp);
+                        RunBest = false;
+                        population.BestPlayer = population.BestPlayer.CloneForReplay();
+                    }
+                    return;
+                }
+                else
+                {
+                    if (!population.Done())
+                    {
+
+                        // Run the population till they die
+                        population.UpdateAlive();
+                        CurrentPlayer = population.GetCurrentPlayer();
+                        if (CurrentPlayer.Dead && CurrentPlayer.player.InControl && !CurrentPlayer.player.JustRespawned)
+                        {
+                            temp.QuickRestart = true;
+                            buffer = CelesteBotManager.PLAYER_GRACE_BUFFER; // sets the buffer to desired wait time... magic
+                            population.CurrentIndex++;
+                            if (population.CurrentIndex >= population.Pop.Count)
+                            {
+                                Logger.Log(CelesteBotInteropModule.ModLogKey, "Population Current Index out of bounds, performing evolution...");
+                                inputPlayer.UpdateData(temp);
+                                return;
+                            }
+                            inputPlayer.UpdateData(temp);
+                        }
                         original();
-                        inputPlayer.UpdateData(temp);
                         return;
                     }
-                    // Run the population till they die
-                    population.UpdateAlive();
-                    CurrentPlayer = population.GetCurrentPlayer();
-                    if (CurrentPlayer.Dead && CurrentPlayer.player.InControl && !CurrentPlayer.player.JustRespawned)
+                    else
                     {
-                        temp.QuickRestart = true;
-                        buffer = CelesteBotManager.PLAYER_GRACE_BUFFER; // sets the buffer to desired wait time... magic
-                        population.CurrentIndex++;
-                        if (population.CurrentIndex >= population.Pop.Count)
-                        {
-                            Logger.Log(CelesteBotInteropModule.ModLogKey, "Population Current Index out of bounds, performing evolution...");
-                            inputPlayer.UpdateData(temp);
-                            return;
-                        }
-                        inputPlayer.UpdateData(temp);
+                        // Do some checkpointing here maybe
+                        population.NaturalSelection();
                     }
-                    original();
-                    return;
-                } else
-                {
-                    // Do some checkpointing here maybe
-                    population.NaturalSelection();
                 }
             }
             inputPlayer.UpdateData(temp);
