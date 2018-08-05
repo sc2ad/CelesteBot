@@ -212,7 +212,7 @@ namespace CelesteBot_Everest_Interop
                     {
                         CurrentPlayer = GenPlayerTemp;
                         GenPlayerTemp.Update();
-                        if (GenPlayerTemp.Dead && GenPlayerTemp.player.InControl && !GenPlayerTemp.player.JustRespawned)
+                        if (GenPlayerTemp.Dead)
                         {
                             Reset(temp);
                             UpToGen++;
@@ -242,7 +242,7 @@ namespace CelesteBot_Everest_Interop
                     {
                         CurrentPlayer = SpeciesChamp;
                         SpeciesChamp.Update();
-                        if (SpeciesChamp.Dead && SpeciesChamp.player.InControl && !SpeciesChamp.player.JustRespawned)
+                        if (SpeciesChamp.Dead)
                         {
                             Reset(temp);
                             UpToSpecies++;
@@ -273,7 +273,7 @@ namespace CelesteBot_Everest_Interop
                     {
                         CurrentPlayer = population.BestPlayer;
                         population.BestPlayer.Update();
-                        if (population.BestPlayer.Dead && population.BestPlayer.player.InControl && !population.BestPlayer.player.JustRespawned)
+                        if (population.BestPlayer.Dead)
                         {
                             Reset(temp);
                             RunBest = false;
@@ -297,7 +297,7 @@ namespace CelesteBot_Everest_Interop
                         // Run the population till they die
                         population.UpdateAlive();
                         CurrentPlayer = population.GetCurrentPlayer();
-                        if (CurrentPlayer.Dead && CurrentPlayer.player.InControl && !CurrentPlayer.player.JustRespawned)
+                        if (CurrentPlayer.Dead)
                         {
                             temp.QuickRestart = true;
                             buffer = CelesteBotManager.PLAYER_GRACE_BUFFER; // sets the buffer to desired wait time... magic
@@ -305,8 +305,9 @@ namespace CelesteBot_Everest_Interop
                             if (population.CurrentIndex >= population.Pop.Count)
                             {
                                 Logger.Log(CelesteBotInteropModule.ModLogKey, "Population Current Index out of bounds, performing evolution...");
-                                inputPlayer.UpdateData(temp);
-                                return;
+                                //inputPlayer.UpdateData(temp);
+                                //original();
+                                //return;
                             }
                             inputPlayer.UpdateData(temp);
                         }
