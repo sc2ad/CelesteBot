@@ -244,7 +244,7 @@ namespace CelesteBot_Everest_Interop
             // The further it gets to the goal the better, the lifespan decreases.
             if (!Replay)
             {
-                Fitness = (((MaxPlayerPos - startPos).Length()) + 2 / (Lifespan * Lifespan));
+                Fitness = (((MaxPlayerPos - startPos).Length()) + 2 / (Lifespan * Lifespan + 1));
             }
             // MODIFY!
         }
