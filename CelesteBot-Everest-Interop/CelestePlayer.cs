@@ -36,7 +36,7 @@ namespace CelesteBot_Everest_Interop
         public CelestePlayer()
         {
             Brain = new Genome(CelesteBotManager.INPUTS, CelesteBotManager.OUTPUTS);
-            //Name = CelesteBotManager.GetUniqueOrganismName();
+            Name = CelesteBotManager.GetUniqueOrganismName();
 
         }
         public void Update()
@@ -214,7 +214,7 @@ namespace CelesteBot_Everest_Interop
         {
             CelestePlayer outp = new CelestePlayer();
             outp.Replay = false;
-            outp.Fitness = Fitness;
+            //outp.Fitness = Fitness;
             outp.Gen = Gen;
             outp.Brain = Brain.Clone();
             return outp;
@@ -242,13 +242,18 @@ namespace CelesteBot_Everest_Interop
                 return;
             }
             // The further it gets to the goal the better, the lifespan decreases.
-            Fitness = (((MaxPlayerPos - startPos).Length()) + 2 / (Lifespan * Lifespan));
+            if (!Replay)
+            {
+                Fitness = (((MaxPlayerPos - startPos).Length()) + 2 / (Lifespan * Lifespan));
+            }
             // MODIFY!
         }
         // Getter method for fitness (rarely used)
         public float GetFitness()
         {
-            CalculateFitness();
+            if (!Replay) {
+                CalculateFitness();
+            }
             return Fitness;
         }
         // Crossover function - less fit parent is parent2

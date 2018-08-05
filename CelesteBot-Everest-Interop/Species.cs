@@ -27,12 +27,12 @@ namespace CelesteBot_Everest_Interop
 
         public Species()
         {
-            //name = getUniqueSpeciesName();
+            Name = CelesteBotManager.GetUniqueSpeciesName();
         }
 
         public Species(CelestePlayer p)
         {
-            //name = getUniqueSpeciesName();
+            Name = CelesteBotManager.GetUniqueSpeciesName();
             p.SpeciesName = Name;
             Players.Add(p);
             // Since it is the only one in the species it is by default the best

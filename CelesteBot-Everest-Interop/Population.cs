@@ -135,6 +135,7 @@ namespace CelesteBot_Everest_Interop
                 {//get the calculated amount of children from this species
                     CelestePlayer temp = s.GetOffspring(InnovationHistory);
                     temp.SpeciesName = s.Name;
+                    temp.Gen = Gen;
                     children.Add(temp);
                 }
             }
@@ -144,6 +145,7 @@ namespace CelesteBot_Everest_Interop
                 Species best = (Species)Species[0];
                 CelestePlayer temp = best.GetOffspring(InnovationHistory);
                 temp.SpeciesName = best.Name;
+                temp.Gen = Gen;
                 children.Add(temp);//get babies from the best species
             }
             Pop.Clear();

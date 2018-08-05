@@ -88,9 +88,12 @@ namespace CelesteBot_Everest_Interop
             // Hey, InputPlayer should be made to work without removing self when players die
             inputPlayer = new InputPlayer(Celeste.Celeste.Instance, new InputData()); // Blank InputData when constructing. Overwrite it when needing to update inputs
             Celeste.Celeste.Instance.Components.Add(inputPlayer);
+            CelesteBotManager.FillOrganismHash(CelesteBotManager.ORGANISM_PATH);
+            CelesteBotManager.FillSpeciesHash(CelesteBotManager.SPECIES_PATH);
             population = new Population(CelesteBotManager.POPULATION_SIZE);
             //GeneratePlayer();
             CurrentPlayer = population.GetCurrentPlayer();
+            
         }
         //public static void GeneratePlayer()
         //{
@@ -153,6 +156,8 @@ namespace CelesteBot_Everest_Interop
             } else if (IsKeyDown(Keys.B))
             {
                 RunBest = !RunBest;
+                Reset(temp);
+                return;
             } else if (IsKeyDown(Keys.S))
             {
                 RunThroughSpecies = !RunThroughSpecies;
@@ -160,14 +165,17 @@ namespace CelesteBot_Everest_Interop
                 Species s = (Species)population.Species[0];
                 CelestePlayer p = (CelestePlayer)s.Champ;
                 SpeciesChamp = p.CloneForReplay();
+                Reset(temp);
+                return;
             } else if (IsKeyDown(Keys.G))
             {
                 ShowBestEachGen = !ShowBestEachGen;
                 UpToGen = 0;
                 CelestePlayer p = (CelestePlayer)population.GenPlayers[0];
                 GenPlayerTemp = p.CloneForReplay();
-            }
-            if (IsKeyDown(Keys.OemBackslash))
+                Reset(temp);
+                return;
+            } else if (IsKeyDown(Keys.OemBackslash))
             {
                 state = State.Running;
             } else if (IsKeyDown(Keys.OemQuotes))
@@ -202,6 +210,7 @@ namespace CelesteBot_Everest_Interop
                 {
                     if (!GenPlayerTemp.Dead)
                     {
+                        CurrentPlayer = GenPlayerTemp;
                         GenPlayerTemp.Update();
                         if (GenPlayerTemp.Dead && GenPlayerTemp.player.InControl && !GenPlayerTemp.player.JustRespawned)
                         {
@@ -224,12 +233,14 @@ namespace CelesteBot_Everest_Interop
                         UpToGen = 0;
                         ShowBestEachGen = false;
                     }
+                    original();
                     return;
                 }
                 else if (RunThroughSpecies)
                 {
                     if (!SpeciesChamp.Dead)
                     {
+                        CurrentPlayer = SpeciesChamp;
                         SpeciesChamp.Update();
                         if (SpeciesChamp.Dead && SpeciesChamp.player.InControl && !SpeciesChamp.player.JustRespawned)
                         {
@@ -253,12 +264,14 @@ namespace CelesteBot_Everest_Interop
                         UpToSpecies = 0;
                         RunThroughSpecies = false;
                     }
+                    original();
                     return;
                 }
                 else if (RunBest)
                 {
                     if (!population.BestPlayer.Dead)
                     {
+                        CurrentPlayer = population.BestPlayer;
                         population.BestPlayer.Update();
                         if (population.BestPlayer.Dead && population.BestPlayer.player.InControl && !population.BestPlayer.player.JustRespawned)
                         {
@@ -273,6 +286,7 @@ namespace CelesteBot_Everest_Interop
                         RunBest = false;
                         population.BestPlayer = population.BestPlayer.CloneForReplay();
                     }
+                    original();
                     return;
                 }
                 else

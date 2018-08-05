@@ -4,6 +4,7 @@ using Microsoft.Xna.Framework;
 using Monocle;
 using System;
 using System.Collections;
+using System.Collections.Generic;
 
 namespace CelesteBot_Everest_Interop
 {
@@ -34,6 +35,9 @@ namespace CelesteBot_Everest_Interop
         public static int POPULATION_SIZE = 50;
 
         public static int PLAYER_GRACE_BUFFER = 120; // How long between restarts should the next player be created
+
+        public static string ORGANISM_PATH = @"Mods\CelesteBot-Everest-Interop\organismNames.txt";
+        public static string SPECIES_PATH = @"Mods\CelesteBot-Everest-Interop\speciesNames.txt";
 
         public static bool Cutscene = false;
 
@@ -245,6 +249,49 @@ namespace CelesteBot_Everest_Interop
                     ActiveFont.Draw(Convert.ToString(n.Id), new Vector2(n.DrawPos.X - TEXT_OFFSET.X, n.DrawPos.Y - TEXT_OFFSET.Y), Vector2.Zero, NODE_LABEL_SCALE, color);
                 }
             }
+        }
+
+        static Dictionary<string, int> orgHash = new Dictionary<string, int>();
+        static Dictionary<string, int> speciesHash = new Dictionary<string, int>();
+        private static void FillHash(Dictionary<string, int> h, string path)
+        {
+            string[] strings = System.IO.File.ReadAllLines(path);
+            foreach (string s in strings)
+            {
+                h.Add(s, 0);
+            }
+            Logger.Log(CelesteBotInteropModule.ModLogKey, "DICT SIZE: " + h.Count);
+        }
+        public static void FillOrganismHash(string path)
+        {
+            FillHash(orgHash, path);
+        }
+        public static void FillSpeciesHash(string path)
+        {
+            FillHash(speciesHash, path);
+        }
+        private static string GetUniqueName(Dictionary<string, int> dict)
+        {
+            Random rand = new Random(Guid.NewGuid().GetHashCode());
+            List<string> list = new List<string>(dict.Keys);
+            if (list.Count == 0)
+            {
+                return ""; // No values or keys
+            }
+            int index = rand.Next(list.Count);
+            string key = list[index];
+            string outp = key + dict[key];
+            dict[key]++;
+            return outp;
+        }
+        public static string GetUniqueOrganismName()
+        {
+            return GetUniqueName(orgHash);
+        }
+
+        public static string GetUniqueSpeciesName()
+        {
+            return GetUniqueName(speciesHash);
         }
 
         // These should all contain variables in the near future
