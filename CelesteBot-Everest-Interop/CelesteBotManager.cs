@@ -224,6 +224,35 @@ namespace CelesteBot_Everest_Interop
                 }
                 Monocle.Draw.Line(fromLoc, toLoc, color, thickness);
             }
+            ArrayList outputNodes = (ArrayList)nodes2d[nodes2d.Count - 1];
+            Dictionary<int, string> OutputLabels = new Dictionary<int, string>();
+            for (int i = 0; i < outputNodes.Count; i++)
+            {
+                Node n = (Node)outputNodes[i];
+                string outputLabel = "";
+                switch (i)
+                {
+                    case 0:
+                        outputLabel = "Left/Right";
+                        break;
+                    case 1:
+                        outputLabel = "Up/Down";
+                        break;
+                    case 2:
+                        outputLabel = "Jump";
+                        break;
+                    case 3:
+                        outputLabel = "Dash";
+                        break;
+                    case 4:
+                        outputLabel = "Grab";
+                        break;
+                    case 5:
+                        outputLabel = "Talk";
+                        break;
+                }
+                OutputLabels.Add(n.Id, outputLabel);
+            }
 
             // Draws all of the Nodes in order
             foreach (ArrayList a in nodes2d)
@@ -251,6 +280,11 @@ namespace CelesteBot_Everest_Interop
                     }
                     Monocle.Draw.Circle(n.DrawPos, NODE_RADIUS, color, thickness, 100);
                     ActiveFont.Draw(Convert.ToString(n.Id), new Vector2(n.DrawPos.X - TEXT_OFFSET.X, n.DrawPos.Y - TEXT_OFFSET.Y), Vector2.Zero, NODE_LABEL_SCALE, color);
+                    if (n.Layer == p.Brain.Layers-1)
+                    {
+                        // Draw Output IDs
+                        ActiveFont.Draw(OutputLabels[n.Id], new Vector2(n.DrawPos.X + NODE_RADIUS+5, n.DrawPos.Y - NODE_RADIUS), Vector2.Zero, NODE_LABEL_SCALE * 2, color);
+                    }
                 }
             }
         }
