@@ -128,7 +128,7 @@ namespace CelesteBot_Everest_Interop
             Vector2 tileUnder = TileFinder.GetTileXY(new Vector2(player.X, player.Y+4));
             //Logger.Log(CelesteBotInteropModule.ModLogKey, "Tile Under Player: (" + tileUnder.X + ", " + tileUnder.Y + ")");
             //Logger.Log(CelesteBotInteropModule.ModLogKey, "(X,Y) Under Player: (" + player.X + ", " + (player.Y + 4) + ")");
-            int[,] outInts = new int[visionX, visionY];
+            int[,] outInts = new int[visionY, visionX];
             for (int i = 0; i < visionY; i++)
             {
                 for (int j = 0; j < visionX; j++)
@@ -165,7 +165,7 @@ namespace CelesteBot_Everest_Interop
             {
                 for (int j = 0; j < CelesteBotManager.VISION_2D_Y_SIZE; j++)
                 {
-                    Vision[i * CelesteBotManager.VISION_2D_Y_SIZE + j] = Vision2D[i, j];
+                    Vision[i * CelesteBotManager.VISION_2D_Y_SIZE + j] = Vision2D[j, i];
                 }
             }
             Vision[CelesteBotManager.VISION_2D_Y_SIZE * CelesteBotManager.VISION_2D_X_SIZE] = player.BottomCenter.X;
@@ -185,20 +185,20 @@ namespace CelesteBot_Everest_Interop
             }
             //get the output of the neural network
             Actions = Brain.FeedForward(Vision);
-            if (Replay)
-            {
-                //println(vision);
-                for (int i = 0; i < Actions.Length; i++)
-                {
-                    if (Lifespan >= ReplayActions.Count)
-                    {
-                        Dead = true;
-                        return;
-                    }
-                    float[] tArr = (float[])ReplayActions[Lifespan];
-                    Actions[i] = tArr[i];
-                }
-            }
+            //if (Replay)
+            //{
+            //    //println(vision);
+            //    for (int i = 0; i < Actions.Length; i++)
+            //    {
+            //        if (Lifespan >= ReplayActions.Count)
+            //        {
+            //            Dead = true;
+            //            return;
+            //        }
+            //        float[] tArr = (float[])ReplayActions[Lifespan];
+            //        Actions[i] = tArr[i];
+            //    }
+            //}
             // PLACEHOLER
             //Actions = new float[] { 1, 0, 0, 0, 0, 0 };
             CelesteBotInteropModule.inputPlayer.UpdateData(new InputData(Actions)); // Updates inputs to reflect neural network results
@@ -249,6 +249,7 @@ namespace CelesteBot_Everest_Interop
             if (!Replay)
             {
                 Fitness = (((MaxPlayerPos - startPos).Length()) + 2 / (Lifespan * Lifespan + 1));
+                // Could also create a fitness hash, using Levels as keys, and create Vector2's representing goal fitness locations
             }
             // MODIFY!
         }
