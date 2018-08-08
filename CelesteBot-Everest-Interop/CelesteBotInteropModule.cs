@@ -52,6 +52,11 @@ namespace CelesteBot_Everest_Interop
         public static CelestePlayer SpeciesChamp;
         public static CelestePlayer GenPlayerTemp;
 
+        public static int FastForwardRate = 20; // How many updates to attempt to run per second
+        public static int FrameLoops = 1;
+
+        public static bool SkipBaseUpdate = false;
+
         private static State state = State.None;
         [Flags]
         private enum State
@@ -80,8 +85,26 @@ namespace CelesteBot_Everest_Interop
             On.Monocle.MInput.Update += MInput_Update;
             On.Celeste.Celeste.OnSceneTransition += OnScene_Transition;
 
+            orig_Game_Update = (h_Game_Update = new Detour(
+                typeof(Game).GetMethod("Update", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic),
+                typeof(CelesteBotInteropModule).GetMethod("Game_Update")
+            )).GenerateTrampoline<d_Game_Update>();
             Logger.Log(ModLogKey, "Load successful");
         }
+
+        public static Detour h_Game_Update;
+        public delegate void d_Game_Update(Game self, GameTime gameTime);
+        public static d_Game_Update orig_Game_Update;
+        public static void Game_Update(Game self, GameTime gameTime)
+        {
+            if (Settings.Enabled && SkipBaseUpdate)
+            {
+                return;
+            }
+
+            orig_Game_Update(self, gameTime);
+        }
+
         public override void Initialize()
         {
             base.Initialize();
@@ -104,10 +127,14 @@ namespace CelesteBot_Everest_Interop
         //}
         public override void Unload()
         {
+            h_Game_Update.Undo();
+            h_Game_Update.Free();
             On.Monocle.Engine.Draw -= Engine_Draw;
             On.Monocle.Engine.Update -= Engine_Update;
             On.Monocle.MInput.Update -= MInput_Update;
             On.Celeste.Celeste.OnSceneTransition -= OnScene_Transition;
+            h_Game_Update.Undo();
+            h_Game_Update.Free();
             Logger.Log(ModLogKey, "Unload successful");
         }
 
@@ -130,8 +157,13 @@ namespace CelesteBot_Everest_Interop
         {
             if (!Settings.Enabled)
             {
+                FrameLoops = 1;
                 original();
                 return;
+            }
+            if (Settings.FastForward)
+            {
+                HandleFrameRates();
             }
             if (CelesteBotManager.CompleteRestart(inputPlayer))
             {
@@ -332,7 +364,55 @@ namespace CelesteBot_Everest_Interop
         }
         public static void Engine_Update(On.Monocle.Engine.orig_Update original, Engine self, GameTime gameTime)
         {
-            original(self, gameTime);
+            SkipBaseUpdate = false;
+
+            if (!Settings.Enabled)
+            {
+                original(self, gameTime);
+                return;
+            }
+
+            // The original patch doesn't store FrameLoops in a local variable, but it's only updated in UpdateInputs anyway.
+            int loops = FrameLoops;
+            if (state == State.Running)
+            {
+                if (loops > 10)
+                {
+                    // Loop without base.Update(), then call base.Update() once.
+                    SkipBaseUpdate = true;
+                    for (int i = 0; i < loops; i++)
+                    {
+                        original(self, gameTime);
+                    }
+                    SkipBaseUpdate = false;
+                    // This _should_ work...
+                    original(self, gameTime);
+                    return;
+                }
+
+                loops = Math.Min(10, loops);
+                for (int i = 0; i < loops; i++)
+                {
+                    original(self, gameTime);
+                }
+            } else
+            {
+                original(self, gameTime);
+            }
+        }
+        private static void HandleFrameRates()
+        {
+            if (state == State.Running)
+            {
+                if (FrameLoops <= 1) {
+                    FrameLoops = FastForwardRate;
+                    return;
+                }
+            }
+            else
+            {
+                FrameLoops = 1;
+            }
         }
         public static void OnScene_Transition(On.Celeste.Celeste.orig_OnSceneTransition original, Celeste.Celeste self, Scene last, Scene next)
         {
