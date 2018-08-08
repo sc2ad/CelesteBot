@@ -144,10 +144,10 @@ namespace CelesteBot_Everest_Interop
         }
         public static void DrawPlayer(CelestePlayer p)
         {
-            int x = 100;
-            int y = 200;
-            int w = 600;
-            int h = 600;
+            int x = 800;
+            int y = 100;
+            int w = 1200;
+            int h = 800;
 
             Logger.Log(CelesteBotInteropModule.ModLogKey, p.ToString());
 
