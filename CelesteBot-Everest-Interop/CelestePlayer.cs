@@ -5,6 +5,7 @@ using Monocle;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -27,7 +28,7 @@ namespace CelesteBot_Everest_Interop
         public bool Dead = false;
         public bool Replay = false;
         public int Gen = 0;
-        public int TimeWhileStuck = 0;
+        private Stopwatch timer;
         public string Name;
         public string SpeciesName = "Not yet defined";
 
@@ -37,7 +38,7 @@ namespace CelesteBot_Everest_Interop
         {
             Brain = new Genome(CelesteBotManager.INPUTS, CelesteBotManager.OUTPUTS);
             Name = CelesteBotManager.GetUniqueOrganismName();
-
+            timer = new Stopwatch();
         }
         public void Update()
         {
@@ -66,13 +67,16 @@ namespace CelesteBot_Everest_Interop
             /*need to incorporate y here, maybe dist to goal here as well*/
             if ((player.Speed.X == 0 || player.BottomCenter.X <= MaxPlayerPos.X) && !player.JustRespawned)
             {
-                TimeWhileStuck++;
-            } else if (TimeWhileStuck > 0)
+                if (!timer.IsRunning)
+                {
+                    timer.Start();
+                }
+            } else
             {
-                TimeWhileStuck = 0;// Resets TimeWhileStuck if it starts moving again!
+                timer.Reset(); // Resets TimeWhileStuck if it starts moving again!
             }
-            Logger.Log(CelesteBotInteropModule.ModLogKey, "Time: " + TimeWhileStuck + " Thresh: " + (TimeWhileStuck / Celeste.Celeste.FPS) + " ? " + CelesteBotInteropModule.Settings.TimeStuckThreshold);
-            if (TimeWhileStuck / Celeste.Celeste.FPS > CelesteBotInteropModule.Settings.TimeStuckThreshold)
+            Logger.Log(CelesteBotInteropModule.ModLogKey, "Time: " + timer.ElapsedMilliseconds + " Thresh: " + (timer.ElapsedMilliseconds / 1000.0) + " ? " + CelesteBotInteropModule.Settings.TimeStuckThreshold);
+            if (timer.ElapsedMilliseconds / 1000.0 > CelesteBotInteropModule.Settings.TimeStuckThreshold)
             {
                 // Kill the player because it hasn't moved for awhile
                 Dead = true;
