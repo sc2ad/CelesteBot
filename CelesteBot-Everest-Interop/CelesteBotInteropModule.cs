@@ -326,6 +326,19 @@ namespace CelesteBot_Everest_Interop
         }
         public static void Engine_Update(On.Monocle.Engine.orig_Update original, Engine self, GameTime gameTime)
         {
+            //try
+            //{
+            //    if (CurrentPlayer.player.Dead)
+            //    {
+            //        CurrentPlayer.Dead = true;
+            //        InputData data = new InputData();
+            //        data.QuickRestart = true;
+            //        inputPlayer.UpdateData(data);
+            //    }
+            //} catch (NullReferenceException e)
+            //{
+            //    // Player has not been setup yet
+            //}
             original(self, gameTime);
         }
         public static void OnScene_Transition(On.Celeste.Celeste.orig_OnSceneTransition original, Celeste.Celeste self, Scene last, Scene next)
