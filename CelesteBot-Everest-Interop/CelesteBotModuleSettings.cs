@@ -17,5 +17,6 @@ namespace CelesteBot_Everest_Interop
         public bool ShowPlayerBrain { get; set; } = true;
         public bool ShowPlayerFitness { get; set; } = true;
 
+        public bool ShowBestFitness { get; set; } = true;
     }
 }

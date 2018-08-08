@@ -39,6 +39,7 @@ namespace CelesteBot_Everest_Interop
         public static bool DrawPlayer { get { return !ShowNothing && Settings.ShowPlayerBrain; } set { } }
         public static bool DrawFitness { get { return !ShowNothing && Settings.ShowPlayerFitness; } set { } }
         public static bool DrawDetails { get { return !ShowNothing && Settings.ShowDetailedPlayerInfo; } set { } }
+        public static bool DrawBestFitness { get { return !ShowNothing && Settings.ShowBestFitness; } set { } }
         public static bool ShowNothing = false;
 
         public static bool ShowBest = false;
@@ -301,6 +302,11 @@ namespace CelesteBot_Everest_Interop
                         {
                             temp.QuickRestart = true;
                             buffer = CelesteBotManager.PLAYER_GRACE_BUFFER; // sets the buffer to desired wait time... magic
+                            if (CurrentPlayer.Fitness > population.BestFitness)
+                            {
+                                population.BestFitness = CurrentPlayer.Fitness;
+                                population.BestPlayer = CurrentPlayer.CloneForReplay();
+                            }
                             population.CurrentIndex++;
                             if (population.CurrentIndex >= population.Pop.Count)
                             {

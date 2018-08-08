@@ -63,6 +63,10 @@ namespace CelesteBot_Everest_Interop
                 {
                     DrawDetails(CelesteBotInteropModule.CurrentPlayer);
                 }
+                if (CelesteBotInteropModule.DrawBestFitness)
+                {
+                    DrawBestFitness();
+                }
             }
             catch (NullReferenceException e)
             {
@@ -298,18 +302,29 @@ namespace CelesteBot_Everest_Interop
 
         public static void DrawFitness(CelestePlayer p)
         {
-            Monocle.Draw.Rect(0f, 30f, 500f, 30f, Color.Black * 0.8f);
+            Monocle.Draw.Rect(0f, 30f, 600f, 30f, Color.Black * 0.8f);
             ActiveFont.Draw(Convert.ToString(p.GetFitness()), new Vector2(3,30), Vector2.Zero, new Vector2(0.5f, 0.5f), Color.White);
         }
         public static void DrawStandard(CelestePlayer p)
         {
-            Monocle.Draw.Rect(0f, 0f, 500f, 30f, Color.Black * 0.8f);
-            ActiveFont.Draw("Gen: " + p.Gen + " Species: " + p.SpeciesName + " Organism: " + p.Name, new Vector2(3, 0), Vector2.Zero, new Vector2(0.45f, 0.45f), Color.White);
+            Monocle.Draw.Rect(0f, 0f, 600f, 30f, Color.Black * 0.8f);
+            if (CelesteBotInteropModule.population.Gen == p.Gen)
+            {
+                ActiveFont.Draw("Gen: " + p.Gen + " Species: " + p.SpeciesName + " Organism (" + (CelesteBotInteropModule.population.CurrentIndex + 1) + "/" + CelesteBotInteropModule.population.Pop.Count + "): " + p.Name, new Vector2(3, 0), Vector2.Zero, new Vector2(0.45f, 0.45f), Color.White);
+            } else
+            {
+                ActiveFont.Draw("Gen: " + CelesteBotInteropModule.population.Gen + " Species: " + p.SpeciesName + " Organism (" + (CelesteBotInteropModule.population.CurrentIndex + 1) + "/" + CelesteBotInteropModule.population.Pop.Count + "): " + p.Name, new Vector2(3, 0), Vector2.Zero, new Vector2(0.45f, 0.45f), Color.White);
+            }
         }
         public static void DrawDetails(CelestePlayer p)
         {
-            Monocle.Draw.Rect(0f, 60f, 500f, 30f, Color.Black * 0.8f);
-            ActiveFont.Draw("(X: " + p.player.BottomCenter.X + ", Y: " + p.player.BottomCenter.Y + "), (Vx: " + p.player.Speed.X + ", Vy: " + p.player.Speed.Y + "), Dashes: " + p.player.Dashes + ", Stamina: " + p.player.Stamina, new Vector2(3,60), Vector2.Zero, new Vector2(0.4f, 0.4f), Color.White);
+            Monocle.Draw.Rect(0f, 90f, 600f, 30f, Color.Black * 0.8f);
+            ActiveFont.Draw("(X: " + p.player.BottomCenter.X + ", Y: " + p.player.BottomCenter.Y + "), (Vx: " + p.player.Speed.X + ", Vy: " + p.player.Speed.Y + "), Dashes: " + p.player.Dashes + ", Stamina: " + p.player.Stamina, new Vector2(3,90), Vector2.Zero, new Vector2(0.4f, 0.4f), Color.White);
+        }
+        public static void DrawBestFitness()
+        {
+            Monocle.Draw.Rect(0f, 60f, 600f, 30f, Color.Black * 0.8f);
+            ActiveFont.Draw("Best Fitness: " + CelesteBotInteropModule.population.BestFitness, new Vector2(3, 60), Vector2.Zero, new Vector2(0.45f, 0.45f), Color.White);
         }
     }
 }
