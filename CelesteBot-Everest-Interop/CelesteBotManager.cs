@@ -20,7 +20,7 @@ namespace CelesteBot_Everest_Interop
         
         public static int VISION_2D_X_SIZE = 5;
         public static int VISION_2D_Y_SIZE = 5;
-        public static int INPUTS = VISION_2D_X_SIZE * VISION_2D_Y_SIZE + 5;
+        public static int INPUTS = VISION_2D_X_SIZE * VISION_2D_Y_SIZE + 6;
         public static int OUTPUTS = 6;
 
         public static Color GENE_POSITIVE_COLOR = Color.DarkGreen;
@@ -32,9 +32,9 @@ namespace CelesteBot_Everest_Interop
 
         // POPULATION PARAMETERS
         public static int EXTINCTION_SAVE_TOP = 5; // How many species to save when a mass extinction occurs
-        public static int POPULATION_SIZE = 100;
+        public static int POPULATION_SIZE = 50;
 
-        public static int PLAYER_GRACE_BUFFER = 120; // How long between restarts should the next player be created
+        public static int PLAYER_GRACE_BUFFER = 200; // How long between restarts should the next player be created, some arbitrary number of frames
         public static double PLAYER_DEATH_TIME_BEFORE_RESET = 3; // How many seconds after a player dies should the next player be created and the last one deleted
 
         public static string ORGANISM_PATH = @"Mods\CelesteBot-Everest-Interop\organismNames.txt";
@@ -142,6 +142,11 @@ namespace CelesteBot_Everest_Interop
                 return true;
             }
             return false;
+        }
+
+        public static float Normalize(float value, float min, float max)
+        {
+            return (value - (max - min)/2) / ((max - min) / 2);
         }
         public static void DrawPlayer(CelestePlayer p)
         {
@@ -278,6 +283,27 @@ namespace CelesteBot_Everest_Interop
                     {
                         thickness = 3;
                         color = Color.DarkRed;
+                    }
+                    if (n.Id < VISION_2D_X_SIZE * VISION_2D_Y_SIZE)
+                    {
+                        // This is a vision input node.
+                        switch (n.OutputValue)
+                        {
+                            default:
+                            case 1:
+                                // Air
+                                break;
+                            case 2:
+                                // Walkable Ground
+                                color = Color.DarkGreen;
+                                thickness = 3;
+                                break;
+                            case 4:
+                                // Collidable Entity
+                                color = Color.DarkRed;
+                                thickness = 3;
+                                break;
+                        }
                     }
                     Monocle.Draw.Circle(n.DrawPos, NODE_RADIUS, color, thickness, 100);
                     ActiveFont.Draw(Convert.ToString(n.Id), new Vector2(n.DrawPos.X - TEXT_OFFSET.X, n.DrawPos.Y - TEXT_OFFSET.Y), Vector2.Zero, NODE_LABEL_SCALE, color);

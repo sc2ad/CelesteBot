@@ -19,6 +19,7 @@ namespace CelesteBot_Everest_Interop
         Vector2 startPos = new Vector2(0,0);
 
         public float Fitness = -1;
+        private float AverageSpeed = 0;
         public float UnadjustedFitness;
         public Genome Brain;
         public ArrayList ReplayActions = new ArrayList();
@@ -63,6 +64,7 @@ namespace CelesteBot_Everest_Interop
                     return;
                 }
             }
+            // This is to make sure that we don't try to reset while we are respawning
             if (player.Dead)
             {
                 if (!deathTimer.IsRunning)
@@ -98,13 +100,8 @@ namespace CelesteBot_Everest_Interop
             }
 
             Lifespan++;
-            // Also calculate live fitness here. The fitness should weight distance to goal, then time it takes to get there.
-            // It might also be easier to apply some sort of fitness based off of velocity of character (that way the faster it goes, the higher the fitness it has)
-            // But make sure that making it to the end is still highest priority.
-
-            // Also update the various parameters the player has here.
-            // Ex: Player x, Player y, Player vx, Player vy, vision (?)
-            if (player.BottomCenter.X > MaxPlayerPos.X)
+            AverageSpeed += player.Speed.Length() / (float)Lifespan;
+            if (player.BottomCenter.X > MaxPlayerPos.X || player.BottomCenter.Y < MaxPlayerPos.Y)
             {
                 MaxPlayerPos = player.BottomCenter;
             }
@@ -144,15 +141,16 @@ namespace CelesteBot_Everest_Interop
             Vector2 tileUnder = TileFinder.GetTileXY(new Vector2(player.X, player.Y+4));
             //Logger.Log(CelesteBotInteropModule.ModLogKey, "Tile Under Player: (" + tileUnder.X + ", " + tileUnder.Y + ")");
             //Logger.Log(CelesteBotInteropModule.ModLogKey, "(X,Y) Under Player: (" + player.X + ", " + (player.Y + 4) + ")");
+            // 1 = Air, 2 = Wall, 4 = Entity
             int[,] outInts = new int[visionY, visionX];
             for (int i = 0; i < visionY; i++)
             {
                 for (int j = 0; j < visionX; j++)
                 {
-                    int temp = TileFinder.IsWallAtTile(new Vector2(tileUnder.X - underXIndex + j, tileUnder.Y - underYIndex + i)) ? 1 : 0;
-                    if (temp == 0)
+                    int temp = TileFinder.IsWallAtTile(new Vector2(tileUnder.X - underXIndex + j, tileUnder.Y - underYIndex + i)) ? 2 : 1;
+                    if (temp == 1)
                     {
-                        temp = TileFinder.IsEntityAtTile(new Vector2(tileUnder.X - underXIndex + j, tileUnder.Y - underYIndex + i)) ? -1 : 0;
+                        temp = TileFinder.IsEntityAtTile(new Vector2(tileUnder.X - underXIndex + j, tileUnder.Y - underYIndex + i)) ? 4 : 1;
                     }
                     outInts[i, j] = temp;
                 }
@@ -173,10 +171,7 @@ namespace CelesteBot_Everest_Interop
             Outputs: U, D, L, R, Jump, Dash, Climb
             If any of the outputs are above 0.7, apply them when returning controller output
             */
-            //Vision[0] = (float)x / ((float)width); // Normalize x and y to the width and height of the scene
-            //Vision[1] = (float)y / ((float)height);
-            //Vision[2] = Math.Abs(vx); // might not want abs?
-            //Vision[3] = vy;
+
             for (int i = 0; i < CelesteBotManager.VISION_2D_X_SIZE; i++)
             {
                 for (int j = 0; j < CelesteBotManager.VISION_2D_Y_SIZE; j++)
@@ -189,7 +184,7 @@ namespace CelesteBot_Everest_Interop
             Vision[CelesteBotManager.VISION_2D_Y_SIZE * CelesteBotManager.VISION_2D_X_SIZE + 2] = player.Speed.X;
             Vision[CelesteBotManager.VISION_2D_Y_SIZE * CelesteBotManager.VISION_2D_X_SIZE + 3] = player.Speed.Y;
             Vision[CelesteBotManager.VISION_2D_Y_SIZE * CelesteBotManager.VISION_2D_X_SIZE + 4] = player.CanDash ? 1 : 0;
-
+            Vision[CelesteBotManager.VISION_2D_Y_SIZE * CelesteBotManager.VISION_2D_X_SIZE + 5] = CelesteBotManager.Normalize(player.Stamina, -1, 120);
         }
         // Updates controller inputs based on neural network output
         void Think()
@@ -201,22 +196,6 @@ namespace CelesteBot_Everest_Interop
             }
             //get the output of the neural network
             Actions = Brain.FeedForward(Vision);
-            //if (Replay)
-            //{
-            //    //println(vision);
-            //    for (int i = 0; i < Actions.Length; i++)
-            //    {
-            //        if (Lifespan >= ReplayActions.Count)
-            //        {
-            //            Dead = true;
-            //            return;
-            //        }
-            //        float[] tArr = (float[])ReplayActions[Lifespan];
-            //        Actions[i] = tArr[i];
-            //    }
-            //}
-            // PLACEHOLER
-            //Actions = new float[] { 1, 0, 0, 0, 0, 0 };
             CelesteBotInteropModule.inputPlayer.UpdateData(new InputData(Actions)); // Updates inputs to reflect neural network results
             string test = "Attempted Actions: [";
             for (int i = 0; i < Actions.Length; i++)
@@ -264,7 +243,7 @@ namespace CelesteBot_Everest_Interop
             // The further it gets to the goal the better, the lifespan decreases.
             if (!Replay)
             {
-                Fitness = (((MaxPlayerPos - startPos).Length()) + 2 / (Lifespan * Lifespan + 1));
+                Fitness = (((MaxPlayerPos - startPos).Length()) + AverageSpeed);
                 // Could also create a fitness hash, using Levels as keys, and create Vector2's representing goal fitness locations
             }
             // MODIFY!
