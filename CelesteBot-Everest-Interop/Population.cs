@@ -81,7 +81,7 @@ namespace CelesteBot_Everest_Interop
             tempBest.Gen = Gen;
 
             // If the best CelestePlayer this gen is better than the global best fitness then set the global best to this CelestePlayer
-            if (tempBest.Fitness > BestFitness)
+            if (tempBest.Fitness >= BestFitness)
             {
                 GenPlayers.Add(tempBest.CloneForReplay());
                 Logger.Log(CelesteBotInteropModule.ModLogKey,"old best: "+ BestFitness);
@@ -126,7 +126,7 @@ namespace CelesteBot_Everest_Interop
                 }
                 Logger.Log(CelesteBotInteropModule.ModLogKey, "With Players: "+playerStr);
 
-                CelestePlayer c = s.Champ.Clone(); // used to be cloneForReplay
+                CelestePlayer c = s.Champ.CloneForReplay(); // used to be cloneForReplay
                 c.SpeciesName = s.Name;
                 children.Add(c);//add champion without any mutation
 
