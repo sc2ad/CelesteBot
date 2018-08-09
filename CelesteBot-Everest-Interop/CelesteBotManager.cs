@@ -35,6 +35,7 @@ namespace CelesteBot_Everest_Interop
         public static int POPULATION_SIZE = 100;
 
         public static int PLAYER_GRACE_BUFFER = 120; // How long between restarts should the next player be created
+        public static double PLAYER_DEATH_TIME_BEFORE_RESET = 3; // How many seconds after a player dies should the next player be created and the last one deleted
 
         public static string ORGANISM_PATH = @"Mods\CelesteBot-Everest-Interop\organismNames.txt";
         public static string SPECIES_PATH = @"Mods\CelesteBot-Everest-Interop\speciesNames.txt";

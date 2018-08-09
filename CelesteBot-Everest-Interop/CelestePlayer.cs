@@ -29,6 +29,7 @@ namespace CelesteBot_Everest_Interop
         public bool Replay = false;
         public int Gen = 0;
         private Stopwatch timer;
+        private Stopwatch deathTimer;
         public string Name;
         public string SpeciesName = "Not yet defined";
 
@@ -39,6 +40,7 @@ namespace CelesteBot_Everest_Interop
             Brain = new Genome(CelesteBotManager.INPUTS, CelesteBotManager.OUTPUTS);
             Name = CelesteBotManager.GetUniqueOrganismName();
             timer = new Stopwatch();
+            deathTimer = new Stopwatch();
         }
         public void Update()
         {
@@ -60,6 +62,18 @@ namespace CelesteBot_Everest_Interop
                     Logger.Log(CelesteBotInteropModule.ModLogKey, "Player has not been created yet, or is null for some other reason.");
                     return;
                 }
+            }
+            if (player.Dead)
+            {
+                if (!deathTimer.IsRunning)
+                {
+                    deathTimer.Start();
+                }
+                if (deathTimer.ElapsedMilliseconds > CelesteBotManager.PLAYER_DEATH_TIME_BEFORE_RESET * 1000)
+                {
+                    Dead = true;
+                }
+                return;
             }
             UpdateVision();
             Look();
@@ -94,6 +108,7 @@ namespace CelesteBot_Everest_Interop
             {
                 MaxPlayerPos = player.BottomCenter;
             }
+            
             //LastPlayerPos = player.BottomCenter;
         }
         public void SetupVision()
@@ -121,7 +136,8 @@ namespace CelesteBot_Everest_Interop
             } catch (InvalidCastException e)
             {
                 // This means we tried to cast a LevelExit to a Level. It basically means we are dead.
-                Dead = true;
+                //Dead = true;
+                // Wait for the timer to expire before actually resetting
                 return;
             }
 
@@ -147,7 +163,7 @@ namespace CelesteBot_Everest_Interop
         {
             if (player == null)
             {
-                Dead = true;
+                // We are waiting for the death timer to expire
                 return;
             }
             // Updates vision array with proper values each frame
@@ -180,7 +196,7 @@ namespace CelesteBot_Everest_Interop
         {
             if (player == null)
             {
-                Dead = true;
+                // We are waiting for the death timer to expire
                 return;
             }
             //get the output of the neural network
