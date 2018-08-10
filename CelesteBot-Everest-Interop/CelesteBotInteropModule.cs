@@ -40,6 +40,7 @@ namespace CelesteBot_Everest_Interop
         public static bool DrawFitness { get { return !ShowNothing && Settings.ShowPlayerFitness; } set { } }
         public static bool DrawDetails { get { return !ShowNothing && Settings.ShowDetailedPlayerInfo; } set { } }
         public static bool DrawBestFitness { get { return !ShowNothing && Settings.ShowBestFitness; } set { } }
+        public static bool DrawGraph { get { return !ShowNothing && Settings.ShowGraph; } set { } }
         public static bool ShowNothing = false;
 
         public static bool ShowBest = false;
@@ -91,7 +92,7 @@ namespace CelesteBot_Everest_Interop
             Celeste.Celeste.Instance.Components.Add(inputPlayer);
             CelesteBotManager.FillOrganismHash(CelesteBotManager.ORGANISM_PATH);
             CelesteBotManager.FillSpeciesHash(CelesteBotManager.SPECIES_PATH);
-            population = new Population(CelesteBotManager.POPULATION_SIZE);
+            population = new Population(Settings.OrganismsPerGeneration); // Requires Restart
             //GeneratePlayer();
             CurrentPlayer = population.GetCurrentPlayer();
             
@@ -137,6 +138,7 @@ namespace CelesteBot_Everest_Interop
             {
                 return;
             }
+            // If in cutscene skip state, skip it the rest of the way.
             if (CelesteBotManager.CheckForCutsceneSkip(inputPlayer))
             {
                 return;
@@ -144,13 +146,13 @@ namespace CelesteBot_Everest_Interop
             if (CelesteBotManager.CompleteCutsceneSkip(inputPlayer))
             {
                 return;
-            }// test
+            }
             
             InputData temp = new InputData();
             
-            // If in cutscene skip state, skip it the rest of the way.
+            
             kbState = Keyboard.GetState();
-            // Make replaying a thing that happens now
+
             if (IsKeyDown(Keys.Space))
             {
                 ShowBest = !ShowBest;
@@ -323,7 +325,24 @@ namespace CelesteBot_Everest_Interop
                     else
                     {
                         // Do some checkpointing here maybe
+
+                        float bFit = 0;
+                        // Gets best fitness without looking at first (previous best) organism
+                        for (int i = 1; i < population.Pop.Count; i++)
+                        {
+                            CelestePlayer p = (CelestePlayer)population.Pop[i];
+                            if (p.GetFitness() > bFit)
+                            {
+                                bFit = p.GetFitness();
+                            }
+                        }
+                        CelesteBotManager.SavedBestFitnesses.Add(bFit);
+                        if (CelesteBotManager.SavedBestFitnesses.Count > Settings.GenerationsToSaveForGraph)
+                        {
+                            CelesteBotManager.SavedBestFitnesses.RemoveAt(0);
+                        }
                         population.NaturalSelection();
+                        
                     }
                 }
             }

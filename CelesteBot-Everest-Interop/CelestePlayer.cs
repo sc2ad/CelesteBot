@@ -100,8 +100,8 @@ namespace CelesteBot_Everest_Interop
             }
 
             Lifespan++;
-            AverageSpeed += player.Speed.Length() / (float)Lifespan;
-            if (player.BottomCenter.X > MaxPlayerPos.X || player.BottomCenter.Y < MaxPlayerPos.Y)
+            AverageSpeed += player.Speed.LengthSquared() / (float)Lifespan;
+            if (player.BottomCenter.X > MaxPlayerPos.X || (player.BottomCenter.Y < MaxPlayerPos.Y && player.BottomCenter.X >= MaxPlayerPos.X))
             {
                 MaxPlayerPos = player.BottomCenter;
             }
@@ -243,7 +243,7 @@ namespace CelesteBot_Everest_Interop
             // The further it gets to the goal the better, the lifespan decreases.
             if (!Replay)
             {
-                Fitness = (((MaxPlayerPos - startPos).Length()) + AverageSpeed / 10);
+                Fitness = (((MaxPlayerPos - startPos).Length()) + AverageSpeed / 1000);
                 // Could also create a fitness hash, using Levels as keys, and create Vector2's representing goal fitness locations
             }
             // MODIFY!

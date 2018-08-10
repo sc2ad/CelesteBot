@@ -11,12 +11,12 @@ namespace CelesteBot_Everest_Interop
     public class CelesteBotManager
     {
         public static float ACTION_THRESHOLD = 0.55f;
-        public static float RE_RANDOMIZE_WEIGHT_CHANCE = 0.3f;
-        public static double WEIGHT_MUTATION_CHANCE = 0.75;
-        public static double ADD_CONNECTION_CHANCE = 0.5;
-        public static double ADD_NODE_CHANCE = 0.08;
+        public static float RE_RANDOMIZE_WEIGHT_CHANCE = 0.2f;
+        public static double WEIGHT_MUTATION_CHANCE = 0.55;
+        public static double ADD_CONNECTION_CHANCE = 0.45;
+        public static double ADD_NODE_CHANCE = 0.1;
 
-        public static double WEIGHT_MAXIMUM = 5; // Max magnitude a weight can be (+- this number)
+        public static double WEIGHT_MAXIMUM = CelesteBotInteropModule.Settings.WeightMaximum; // Max magnitude a weight can be (+- this number)
         
         public static int VISION_2D_X_SIZE = 5;
         public static int VISION_2D_Y_SIZE = 5;
@@ -29,16 +29,20 @@ namespace CelesteBot_Everest_Interop
         public static int NODE_RADIUS = 10;
         public static Vector2 NODE_LABEL_SCALE = new Vector2(0.2f, 0.2f);
         public static Vector2 TEXT_OFFSET = new Vector2(7, 7);
+        // Graphing Parameters
+        public static ArrayList SavedBestFitnesses = new ArrayList();
 
         // POPULATION PARAMETERS
         public static int EXTINCTION_SAVE_TOP = 5; // How many species to save when a mass extinction occurs
-        public static int POPULATION_SIZE = 50;
+        //public static int POPULATION_SIZE = 50;
 
         public static int PLAYER_GRACE_BUFFER = 200; // How long between restarts should the next player be created, some arbitrary number of frames
         public static double PLAYER_DEATH_TIME_BEFORE_RESET = 3; // How many seconds after a player dies should the next player be created and the last one deleted
 
+        // Paths/Prefixes
         public static string ORGANISM_PATH = @"Mods\CelesteBot-Everest-Interop\organismNames.txt";
         public static string SPECIES_PATH = @"Mods\CelesteBot-Everest-Interop\speciesNames.txt";
+        public static string CHECKPOINT_FILE_PREFIX = @"Mods\CelesteBot-Everest-Interop\Checkpoints\checkpoint";
 
         public static bool Cutscene = false;
 
@@ -67,6 +71,10 @@ namespace CelesteBot_Everest_Interop
                 if (CelesteBotInteropModule.DrawBestFitness)
                 {
                     DrawBestFitness();
+                }
+                if (CelesteBotInteropModule.DrawGraph)
+                {
+                    DrawGraph();
                 }
             }
             catch (NullReferenceException e)
@@ -315,6 +323,44 @@ namespace CelesteBot_Everest_Interop
                         ActiveFont.Draw(OutputLabels[n.Id], new Vector2(n.DrawPos.X + NODE_RADIUS+5, n.DrawPos.Y - NODE_RADIUS), Vector2.Zero, NODE_LABEL_SCALE * 2, color);
                     }
                 }
+            }
+        }
+
+        public static void DrawGraph()
+        {
+            int x = 500;
+            int y = 100;
+            int w = 300;
+            int h = 300;
+            int xInterval = w / CelesteBotInteropModule.Settings.GenerationsToSaveForGraph;
+            float maxFitness = 0;
+            foreach (float i in SavedBestFitnesses)
+            {
+                if (i > maxFitness)
+                {
+                    maxFitness = i;
+                }
+            }
+            int yInterval = (int)(h / (maxFitness + 1));
+
+            Monocle.Draw.Rect(x, y, w, h, Color.Black * 0.8f); // Draws background
+
+            Monocle.Draw.Line(new Vector2(x, y), new Vector2(x, y + h), Color.White);
+            Monocle.Draw.Line(new Vector2(x, y + h), new Vector2(x + w, y + h), Color.White);
+
+            ActiveFont.Draw(Convert.ToString(maxFitness), new Vector2(x - 30, y + 10), Vector2.Zero, new Vector2(0.4f, 0.4f), Color.White);
+            if (SavedBestFitnesses.Count >= 2)
+            {
+                for (int i = 0; i < SavedBestFitnesses.Count-1; i++)
+                {
+                    float fitness = (float)SavedBestFitnesses[i];
+                    float fitness2 = (float)SavedBestFitnesses[i + 1];
+                    Monocle.Draw.Line(new Vector2(x + xInterval * i, y + h - yInterval * fitness), new Vector2(x + xInterval * (i+1), y + h - yInterval * fitness2), Color.White);
+                    Monocle.Draw.Line(new Vector2(x + xInterval * i, y + h + 3), new Vector2(x + xInterval * i, y + h - 3), Color.White);
+                    ActiveFont.Draw(Convert.ToString(CelesteBotInteropModule.population.Gen - SavedBestFitnesses.Count + i), new Vector2(x + xInterval * i, y + h + 15), Vector2.Zero, new Vector2(0.4f, 0.4f), Color.White);
+                }
+                Monocle.Draw.Line(new Vector2(x + xInterval * (SavedBestFitnesses.Count - 1), y + h + 3), new Vector2(x + xInterval * (SavedBestFitnesses.Count - 1), y + h - 3), Color.White);
+                ActiveFont.Draw(Convert.ToString(CelesteBotInteropModule.population.Gen - 1), new Vector2(x + xInterval * (SavedBestFitnesses.Count - 1), y + h + 15), Vector2.Zero, new Vector2(0.4f, 0.4f), Color.White);
             }
         }
 

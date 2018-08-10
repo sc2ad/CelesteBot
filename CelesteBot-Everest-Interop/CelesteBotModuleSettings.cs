@@ -16,7 +16,18 @@ namespace CelesteBot_Everest_Interop
         public bool ShowDetailedPlayerInfo { get; set; } = true;
         public bool ShowPlayerBrain { get; set; } = true;
         public bool ShowPlayerFitness { get; set; } = true;
-
+        public bool ShowGraph { get; set; } = true;
+        [SettingRange(2, 25)]
+        public int GenerationsToSaveForGraph { get; set; } = 5;
+        [SettingRange(10, 100)]
+        [SettingNeedsRelaunch()]
+        public int OrganismsPerGeneration { get; set; } = 30;
+        [SettingRange(1, 10)]
+        public int WeightMaximum { get; set; } = 5;
         public bool ShowBestFitness { get; set; } = true;
+        [SettingRange(1, 25)]
+        public int CheckpointInterval { get; set; } = 3;
+        [SettingRange(0, 500)]
+        public int CheckpointToLoad { get; set; } = 20;
     }
 }
