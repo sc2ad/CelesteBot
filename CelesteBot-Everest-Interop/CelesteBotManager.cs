@@ -292,6 +292,8 @@ namespace CelesteBot_Everest_Interop
                             default:
                             case 1:
                                 // Air
+                                color = Color.White;
+                                thickness = 1;
                                 break;
                             case 2:
                                 // Walkable Ground
