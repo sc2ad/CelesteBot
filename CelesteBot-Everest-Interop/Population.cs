@@ -10,6 +10,7 @@ namespace CelesteBot_Everest_Interop
 {
     // This class represents ALL of the Players that will be evolved.
     // It serves as a 'holder' for all of the Players of each generation and is also responsible for evolving them+showing+updating them
+    [Serializable]
     public class Population
     {
         public ArrayList Pop = new ArrayList();
@@ -28,6 +29,18 @@ namespace CelesteBot_Everest_Interop
         public Population(int size)
         {
             for (int i = 0; i < size; i++)
+            {
+                CelestePlayer toAdd = new CelestePlayer();
+                toAdd.Brain.GenerateNetwork();
+                toAdd.Brain.Mutate(InnovationHistory);
+                Pop.Add(toAdd);
+            }
+            CurrentIndex = 0;
+        }
+
+        public Population()
+        {
+            for (int i = 0; i < CelesteBotInteropModule.Settings.OrganismsPerGeneration; i++)
             {
                 CelestePlayer toAdd = new CelestePlayer();
                 toAdd.Brain.GenerateNetwork();

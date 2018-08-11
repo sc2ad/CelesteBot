@@ -183,7 +183,10 @@ namespace CelesteBot_Everest_Interop
                 state = State.Running;
             } else if (IsKeyDown(Keys.OemQuotes))
             {
-                state = State.Running;
+                population = Util.DeSerializeObject(CelesteBotManager.CHECKPOINT_FILE_PREFIX + "_" + Convert.ToString(Settings.CheckpointToLoad) + ".ckp");
+                Logger.Log(ModLogKey, "Loaded Population from: " + CelesteBotManager.CHECKPOINT_FILE_PREFIX + "_" + Convert.ToString(Settings.CheckpointToLoad) + ".ckp");
+                Reset(temp);
+                return;
             } else if (IsKeyDown(Keys.OemPeriod))
             {
                 state = State.Disabled;
@@ -325,6 +328,15 @@ namespace CelesteBot_Everest_Interop
                     else
                     {
                         // Do some checkpointing here maybe
+
+                        if (population.Gen % Settings.CheckpointInterval == 0)
+                        {
+                            // Time to checkpoint!
+                            // Lets save the population as-is into a binary file.
+                            Directory.CreateDirectory(CelesteBotManager.CHECKPOINT_FILE_PATH);
+                            Util.SerializeObject(population, CelesteBotManager.CHECKPOINT_FILE_PREFIX + "_" + population.Gen + ".ckp");
+                            Logger.Log(ModLogKey, "Saved Population to: " + CelesteBotManager.CHECKPOINT_FILE_PREFIX + "_" + population.Gen + ".ckp");
+                        }
 
                         float bFit = 0;
                         // Gets best fitness without looking at first (previous best) organism

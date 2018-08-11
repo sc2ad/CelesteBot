@@ -19,8 +19,7 @@ namespace CelesteBot_Everest_Interop
         public bool ShowGraph { get; set; } = true;
         [SettingRange(2, 25)]
         public int GenerationsToSaveForGraph { get; set; } = 5;
-        [SettingRange(10, 100)]
-        [SettingNeedsRelaunch()]
+        [SettingRange(10, 100), SettingNeedsRelaunch()]
         public int OrganismsPerGeneration { get; set; } = 30;
         [SettingRange(1, 10)]
         public int WeightMaximum { get; set; } = 5;

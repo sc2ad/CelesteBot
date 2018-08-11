@@ -12,9 +12,9 @@ namespace CelesteBot_Everest_Interop
     {
         public static float ACTION_THRESHOLD = 0.55f;
         public static float RE_RANDOMIZE_WEIGHT_CHANCE = 0.2f;
-        public static double WEIGHT_MUTATION_CHANCE = 0.55;
-        public static double ADD_CONNECTION_CHANCE = 0.45;
-        public static double ADD_NODE_CHANCE = 0.1;
+        public static double WEIGHT_MUTATION_CHANCE = 0.65;
+        public static double ADD_CONNECTION_CHANCE = 0.55;
+        public static double ADD_NODE_CHANCE = 0.15;
 
         public static double WEIGHT_MAXIMUM = CelesteBotInteropModule.Settings.WeightMaximum; // Max magnitude a weight can be (+- this number)
         
@@ -36,13 +36,14 @@ namespace CelesteBot_Everest_Interop
         public static int EXTINCTION_SAVE_TOP = 5; // How many species to save when a mass extinction occurs
         //public static int POPULATION_SIZE = 50;
 
-        public static int PLAYER_GRACE_BUFFER = 200; // How long between restarts should the next player be created, some arbitrary number of frames
-        public static double PLAYER_DEATH_TIME_BEFORE_RESET = 3; // How many seconds after a player dies should the next player be created and the last one deleted
+        public static int PLAYER_GRACE_BUFFER = 160; // How long between restarts should the next player be created, some arbitrary number of frames
+        public static double PLAYER_DEATH_TIME_BEFORE_RESET = 2.5; // How many seconds after a player dies should the next player be created and the last one deleted
 
         // Paths/Prefixes
-        public static string ORGANISM_PATH = @"Mods\CelesteBot-Everest-Interop\organismNames.txt";
-        public static string SPECIES_PATH = @"Mods\CelesteBot-Everest-Interop\speciesNames.txt";
-        public static string CHECKPOINT_FILE_PREFIX = @"Mods\CelesteBot-Everest-Interop\Checkpoints\checkpoint";
+        public static string ORGANISM_PATH = @"organismNames.txt";
+        public static string SPECIES_PATH = @"speciesNames.txt";
+        public static string CHECKPOINT_FILE_PATH = @"Checkpoints";
+        public static string CHECKPOINT_FILE_PREFIX = @"Checkpoints\checkpoint";
 
         public static bool Cutscene = false;
 
