@@ -12,6 +12,10 @@ namespace CelesteBot_Everest_Interop
 {
     class TileFinder
     {
+        private static Level celesteLevel;
+        private static SolidTiles tiles;
+        private static MTexture[,] tileArray;
+
         public static Vector2 TilesOffset = new Vector2(0,0); // TilesOffset for SolidsData offset
         public static void GetAllEntities()
         {
@@ -41,7 +45,39 @@ namespace CelesteBot_Everest_Interop
                     min.Y = list[i].BottomCenter.Y;
                 }
             }
+            try
+            {
+                celesteLevel = (Level)Celeste.Celeste.Scene;
+                tiles = celesteLevel.SolidTiles;
+                tileArray = tiles.Tiles.Tiles.ToArray();
+            } catch (NullReferenceException e)
+            {
+                // level does not exist
+            } catch (InvalidCastException e)
+            {
+                // level does not exist
+            }
             TilesOffset = min;
+        }
+        private static Level GetCelesteLevel()
+        {
+            if (celesteLevel != null)
+            {
+                return celesteLevel;
+            }
+            try
+            {
+                celesteLevel = (Level)Celeste.Celeste.Scene;
+            }
+            catch (NullReferenceException e)
+            {
+                // level does not exist
+            }
+            catch (InvalidCastException e)
+            {
+                // level does not exist
+            }
+            return celesteLevel;
         }
         public static Vector2 GetTileXY(Vector2 realPos)
         {
@@ -76,22 +112,10 @@ namespace CelesteBot_Everest_Interop
         {
             try
             {
-                Level celesteLevel = (Level)Celeste.Celeste.Scene;
-                SolidTiles tiles = celesteLevel.SolidTiles;
-                MTexture[,] tileArray = tiles.Tiles.Tiles.ToArray();
                 Vector2 tile = GetTileXY(realPos);
                 if (tileArray[(int)tile.X, (int)tile.Y] != null)
                 {
                     if (!tileArray[(int)tile.X, (int)tile.Y].Equals("tilesets/scenery"))
-                    {
-                        return true;
-                    }
-                }
-                EntityList entities = Celeste.Celeste.Scene.Entities;
-
-                for (int i = 0; i < entities.Count; i++)
-                {
-                    if (entities[i].CollidePoint(realPos))
                     {
                         return true;
                     }
@@ -111,9 +135,7 @@ namespace CelesteBot_Everest_Interop
         {
             try
             {
-                Level celesteLevel = (Level)Celeste.Celeste.Scene;
-                SolidTiles tiles = celesteLevel.SolidTiles;
-                MTexture[,] tileArray = tiles.Tiles.Tiles.ToArray();
+                
                 if (tileArray[(int)tile.X, (int)tile.Y] != null)
                 {
                     if (!tileArray[(int)tile.X, (int)tile.Y].Equals("tilesets/scenery"))
