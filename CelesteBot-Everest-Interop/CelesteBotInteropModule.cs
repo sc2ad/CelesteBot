@@ -134,6 +134,28 @@ namespace CelesteBot_Everest_Interop
                 original();
                 return;
             }
+            try
+            {
+                Celeste.Player player = Celeste.Celeste.Scene.Tracker.GetEntity<Celeste.Player>();
+                if (player.StateMachine.State == 11 && !player.InControl && !player.OnGround() && inputPlayer.LastData.Dash != true) // this makes sure we retry
+                {
+                    // This means we are in the bird tutorial.
+                    // Make us finish it right away.
+                    InputData data = new InputData();
+                    data.MoveX = 1;
+                    data.MoveY = -1;
+                    data.Dash = true;
+                    inputPlayer.UpdateData(data);
+                    Logger.Log(ModLogKey, "The player is in the dash cutscene, so we tried to get them out of it by dashing.");
+                    return;
+                }
+            } catch (NullReferenceException e)
+            {
+                // level doesn't exist yet
+            } catch (InvalidCastException e)
+            {
+                // still doesn't exist
+            }
             if (CelesteBotManager.CompleteRestart(inputPlayer))
             {
                 return;
