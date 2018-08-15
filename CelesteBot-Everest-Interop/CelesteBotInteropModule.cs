@@ -137,6 +137,22 @@ namespace CelesteBot_Everest_Interop
             try
             {
                 Celeste.Player player = Celeste.Celeste.Scene.Tracker.GetEntity<Celeste.Player>();
+                foreach (Entity e in Celeste.Celeste.Scene.Entities) {
+                    Logger.Log(ModLogKey, e.Tag + " tag with: " + e.Center + " center");
+                    if (e.TagCheck(4))
+                    {
+                        // This is (in theory) something that can be interacted with/talked to.
+                        if (e.CollideCheck(player))
+                        {
+                            // If the player is touching it, we can pretend to talk (maybe)
+                            InputData data = new InputData();
+                            data.Talk = true;
+                            inputPlayer.UpdateData(data);
+                            Logger.Log(ModLogKey, "Attempted to talk to something!");
+                            return;
+                        }
+                    }
+                }
                 if (player.StateMachine.State == 11 && !player.InControl && !player.OnGround() && inputPlayer.LastData.Dash != true) // this makes sure we retry
                 {
                     // This means we are in the bird tutorial.
@@ -149,6 +165,7 @@ namespace CelesteBot_Everest_Interop
                     Logger.Log(ModLogKey, "The player is in the dash cutscene, so we tried to get them out of it by dashing.");
                     return;
                 }
+                
             } catch (NullReferenceException e)
             {
                 // level doesn't exist yet
