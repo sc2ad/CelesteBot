@@ -20,10 +20,12 @@ namespace CelesteBot_Everest_Interop
 
             try
             {
-                Stream stream = new FileStream(fileName, FileMode.Open, FileAccess.Write, FileShare.Write);
-                IFormatter formatter = new BinaryFormatter();
-                formatter.Serialize(stream, pop);
-                stream.Close();
+                using (Stream stream = File.Create(fileName))
+                {
+                    IFormatter formatter = new BinaryFormatter();
+                    formatter.Serialize(stream, pop);
+                    stream.Close();
+                }
             }
             catch (Exception ex)
             {
@@ -39,10 +41,13 @@ namespace CelesteBot_Everest_Interop
 
             try
             {
-                Stream stream = new FileStream(fileName, FileMode.Open, FileAccess.Read, FileShare.Read);
-                IFormatter formatter = new BinaryFormatter();
-                objectOut = (Population)formatter.Deserialize(stream);
-                stream.Close();
+                using (Stream stream = File.OpenRead(fileName))
+                {
+                    IFormatter formatter = new BinaryFormatter();
+                    stream.Position = 0;
+                    objectOut = (Population)formatter.Deserialize(stream);
+                    stream.Close();
+                }
             }
             catch (Exception ex)
             {

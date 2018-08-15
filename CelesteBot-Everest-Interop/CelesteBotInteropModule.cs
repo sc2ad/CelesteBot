@@ -183,7 +183,10 @@ namespace CelesteBot_Everest_Interop
                 state = State.Running;
             } else if (IsKeyDown(Keys.OemQuotes))
             {
-                population = Util.DeSerializeObject(CelesteBotManager.CHECKPOINT_FILE_PREFIX + "_" + Convert.ToString(Settings.CheckpointToLoad) + ".ckp");
+                Population test = Util.DeSerializeObject(CelesteBotManager.CHECKPOINT_FILE_PREFIX + "_" + Convert.ToString(Settings.CheckpointToLoad) + ".ckp");
+                if (test != null) {
+                    population = test;
+                }
                 Logger.Log(ModLogKey, "Loaded Population from: " + CelesteBotManager.CHECKPOINT_FILE_PREFIX + "_" + Convert.ToString(Settings.CheckpointToLoad) + ".ckp");
                 Reset(temp);
                 return;
