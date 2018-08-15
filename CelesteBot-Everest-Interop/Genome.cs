@@ -360,7 +360,6 @@ namespace CelesteBot_Everest_Interop
             {
                 AddNode(innovationHistory);
             }
-            Logger.Log(CelesteBotInteropModule.ModLogKey, Genes[0].ToString()+" r1: "+rand1+" r2: "+rand2+" r3: "+rand3);
         }
 
         // Performs crossover, assuming that this Genome is more fit than the other Genome

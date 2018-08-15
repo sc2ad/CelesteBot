@@ -164,8 +164,6 @@ namespace CelesteBot_Everest_Interop
             int w = 1200;
             int h = 800;
 
-            Logger.Log(CelesteBotInteropModule.ModLogKey, p.ToString());
-
             Monocle.Draw.Rect(x, y, w, h, Color.Black * 0.8f); // Draws background
 
             ArrayList nodes2d = new ArrayList();
@@ -315,6 +313,15 @@ namespace CelesteBot_Everest_Interop
                                 thickness = 3;
                                 break;
                         }
+                    } else
+                    {
+                        if (Math.Abs(n.OutputValue) < 1 && (n.Id < INPUTS || n.Id > INPUTS + OUTPUTS - 1))
+                        {
+                            Vector3 greenest = Color.DarkGreen.ToVector3();
+                            Vector3 redest = Color.DarkRed.ToVector3();
+                            Vector3 colorDelta = greenest - redest;
+                            color = new Color(redest + colorDelta - colorDelta * n.OutputValue);
+                        }
                     }
                     Monocle.Draw.Circle(n.DrawPos, NODE_RADIUS, color, thickness, 100);
                     ActiveFont.Draw(Convert.ToString(n.Id), new Vector2(n.DrawPos.X - TEXT_OFFSET.X, n.DrawPos.Y - TEXT_OFFSET.Y), Vector2.Zero, NODE_LABEL_SCALE, color);
@@ -331,9 +338,9 @@ namespace CelesteBot_Everest_Interop
         {
             int x = 500;
             int y = 100;
-            int w = 300;
+            int w = 600;
             int h = 300;
-            int xInterval = w / CelesteBotInteropModule.Settings.GenerationsToSaveForGraph;
+            float xInterval = w / CelesteBotInteropModule.Settings.GenerationsToSaveForGraph;
             float maxFitness = 0;
             foreach (float i in SavedBestFitnesses)
             {
@@ -342,7 +349,7 @@ namespace CelesteBot_Everest_Interop
                     maxFitness = i;
                 }
             }
-            int yInterval = (int)(h / (maxFitness + 1));
+            float yInterval = (h / (maxFitness + 1));
 
             Monocle.Draw.Rect(x, y, w, h, Color.Black * 0.8f); // Draws background
 
@@ -374,7 +381,6 @@ namespace CelesteBot_Everest_Interop
             {
                 h.Add(s, 0);
             }
-            Logger.Log(CelesteBotInteropModule.ModLogKey, "DICT SIZE: " + h.Count);
         }
         public static void FillOrganismHash(string path)
         {

@@ -20,6 +20,7 @@ namespace CelesteBot_Everest_Interop
 
         public float Fitness = -1;
         private float AverageSpeed = 0;
+        private float AverageStamina = 110;
         public float UnadjustedFitness;
         public Genome Brain;
         public ArrayList ReplayActions = new ArrayList();
@@ -91,7 +92,6 @@ namespace CelesteBot_Everest_Interop
             {
                 timer.Reset(); // Resets TimeWhileStuck if it starts moving again!
             }
-            Logger.Log(CelesteBotInteropModule.ModLogKey, "Time: " + timer.ElapsedMilliseconds + " Thresh: " + (timer.ElapsedMilliseconds / 1000.0) + " ? " + CelesteBotInteropModule.Settings.TimeStuckThreshold);
             if (timer.ElapsedMilliseconds / 1000.0 > CelesteBotInteropModule.Settings.TimeStuckThreshold)
             {
                 // Kill the player because it hasn't moved for awhile
@@ -101,6 +101,7 @@ namespace CelesteBot_Everest_Interop
 
             Lifespan++;
             AverageSpeed += player.Speed.LengthSquared() / (float)Lifespan;
+            AverageStamina += player.Stamina / (float)Lifespan;
             if (player.BottomCenter.X > MaxPlayerPos.X || (player.BottomCenter.Y < MaxPlayerPos.Y && player.BottomCenter.X >= MaxPlayerPos.X))
             {
                 MaxPlayerPos = player.BottomCenter;
@@ -203,8 +204,8 @@ namespace CelesteBot_Everest_Interop
                 test += Actions[i] + ", ";
             }
             test += "]";
-            Logger.Log(CelesteBotInteropModule.ModLogKey, test);
-            Logger.Log(CelesteBotInteropModule.ModLogKey, "Attempted Input: " + new InputData(Actions));
+            //Logger.Log(CelesteBotInteropModule.ModLogKey, test);
+            //Logger.Log(CelesteBotInteropModule.ModLogKey, "Attempted Input: " + new InputData(Actions));
             // Need to convert actions float values into controller inputs here.
             // Then needs to return controller inputs so that the player can move
         }
@@ -243,7 +244,7 @@ namespace CelesteBot_Everest_Interop
             // The further it gets to the goal the better, the lifespan decreases.
             if (!Replay)
             {
-                Fitness = (((MaxPlayerPos - startPos).Length()) + AverageSpeed / 10000);
+                Fitness = (((MaxPlayerPos - startPos).Length()) + AverageSpeed / 10000 + 110 / AverageStamina);
                 // Could also create a fitness hash, using Levels as keys, and create Vector2's representing goal fitness locations
             }
             // MODIFY!
