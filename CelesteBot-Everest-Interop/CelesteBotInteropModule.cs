@@ -53,6 +53,11 @@ namespace CelesteBot_Everest_Interop
         public static CelestePlayer SpeciesChamp;
         public static CelestePlayer GenPlayerTemp;
 
+        private static int TalkCount = 0; // Counts how many times we attempted to talk to something
+        private static int TalkMaxAttempts = 30; // How many attempts until we give up attempting to talk to something
+        private static int MaxTimeSinceLastTalk = 100; // Number of skipped frames when we can talk if we have recently talked to something
+        private static int TimeSinceLastTalk = MaxTimeSinceLastTalk; // Keeps track of frames since last talk
+
         private static State state = State.None;
         [Flags]
         private enum State
@@ -137,22 +142,27 @@ namespace CelesteBot_Everest_Interop
             try
             {
                 Celeste.Player player = Celeste.Celeste.Scene.Tracker.GetEntity<Celeste.Player>();
-                foreach (Entity e in Celeste.Celeste.Scene.Entities) {
-                    Logger.Log(ModLogKey, e.Tag + " tag with: " + e.Center + " center");
-                    if (e.TagCheck(4))
+                if (Celeste.TalkComponent.PlayerOver != null && TalkCount < TalkMaxAttempts && TimeSinceLastTalk >= MaxTimeSinceLastTalk)
+                {
+                    if (inputPlayer.LastData.Talk)
                     {
-                        // This is (in theory) something that can be interacted with/talked to.
-                        if (e.CollideCheck(player))
-                        {
-                            // If the player is touching it, we can pretend to talk (maybe)
-                            InputData data = new InputData();
-                            data.Talk = true;
-                            inputPlayer.UpdateData(data);
-                            Logger.Log(ModLogKey, "Attempted to talk to something!");
-                            return;
-                        }
+                        // Lets stop talking for a quick frame
+                        throw new InvalidCastException("This is just to get us out of the rest of this try-catch, normal operation applies again");
                     }
+                    // Hey we can talk!
+                    InputData data = new InputData();
+                    data.Talk = true;
+                    inputPlayer.UpdateData(data);
+                    Logger.Log(ModLogKey, "We tried to talk!");
+                    TalkCount++;
+                    TimeSinceLastTalk = 0;
+                    return;
+                } if (Celeste.TalkComponent.PlayerOver == null)
+                {
+                    TimeSinceLastTalk = MaxTimeSinceLastTalk;
+                    TalkCount = 0;
                 }
+                TimeSinceLastTalk++;
                 if (player.StateMachine.State == 11 && !player.InControl && !player.OnGround() && inputPlayer.LastData.Dash != true) // this makes sure we retry
                 {
                     // This means we are in the bird tutorial.
