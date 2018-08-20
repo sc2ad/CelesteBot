@@ -28,5 +28,9 @@ namespace CelesteBot_Everest_Interop
         public int CheckpointInterval { get; set; } = 3;
         [SettingRange(0, 500)]
         public int CheckpointToLoad { get; set; } = 20;
+        [SettingRange(5, 50)]
+        public int MaxTalkAttempts { get; set; } = 30;
+        [SettingRange(60, 240)]
+        public int TalkFrameBuffer { get; set; } = 100;
     }
 }
