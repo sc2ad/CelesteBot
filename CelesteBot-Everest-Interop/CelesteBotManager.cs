@@ -10,16 +10,16 @@ namespace CelesteBot_Everest_Interop
 {
     public class CelesteBotManager
     {
-        public static float ACTION_THRESHOLD = (float)(Convert.ToDouble(CelesteBotInteropModule.Settings.ActionThreshold) / 100.0); // The value that must be surpassed for the output to be accepted
-        public static float RE_RANDOMIZE_WEIGHT_CHANCE = (float)(Convert.ToDouble(CelesteBotInteropModule.Settings.ReRandomizeWeightChance) / 100.0); // The chance for the weight to be re-randomized
-        public static double WEIGHT_MUTATION_CHANCE = (float)(Convert.ToDouble(CelesteBotInteropModule.Settings.MutateWeight) / 100.0); // The chance for a weight to be mutated
-        public static double ADD_CONNECTION_CHANCE = (float)(Convert.ToDouble(CelesteBotInteropModule.Settings.AddConnectionChance) / 100.0); // The chance for a new connection to be added
-        public static double ADD_NODE_CHANCE = (float)(Convert.ToDouble(CelesteBotInteropModule.Settings.AddNodeChance) / 100.0); // The chance for a new node to be added
+        public static float ACTION_THRESHOLD = 0.55f; // The value that must be surpassed for the output to be accepted
+        public static float RE_RANDOMIZE_WEIGHT_CHANCE = 0.2f; // The chance for the weight to be re-randomized
+        public static double WEIGHT_MUTATION_CHANCE = 0.65f; // The chance for a weight to be mutated
+        public static double ADD_CONNECTION_CHANCE = 0.55f; // The chance for a new connection to be added
+        public static double ADD_NODE_CHANCE = 0.15f; // The chance for a new node to be added
 
-        public static double WEIGHT_MAXIMUM = CelesteBotInteropModule.Settings.WeightMaximum; // Max magnitude a weight can be (+- this number)
+        public static double WEIGHT_MAXIMUM = 3; // Max magnitude a weight can be (+- this number)
         
-        public static int VISION_2D_X_SIZE = CelesteBotInteropModule.Settings.XVisionSize; // X Size of the Vision array
-        public static int VISION_2D_Y_SIZE = CelesteBotInteropModule.Settings.YVisionSize; // Y Size of the Vision array
+        public static int VISION_2D_X_SIZE = 5; // X Size of the Vision array
+        public static int VISION_2D_Y_SIZE = 5; // Y Size of the Vision array
         public static int INPUTS = VISION_2D_X_SIZE * VISION_2D_Y_SIZE + 6;
         public static int OUTPUTS = 5;
 
@@ -46,6 +46,38 @@ namespace CelesteBot_Everest_Interop
         public static string CHECKPOINT_FILE_PREFIX = @"Checkpoints\checkpoint";
 
         public static bool Cutscene = false;
+
+        public static void Initialize()
+        {
+            ACTION_THRESHOLD = (float)(Convert.ToDouble(CelesteBotInteropModule.Settings.ActionThreshold) / 100.0); // The value that must be surpassed for the output to be accepted
+            RE_RANDOMIZE_WEIGHT_CHANCE = (float)(Convert.ToDouble(CelesteBotInteropModule.Settings.ReRandomizeWeightChance) / 100.0); // The chance for the weight to be re-randomized
+            WEIGHT_MUTATION_CHANCE = (float)(Convert.ToDouble(CelesteBotInteropModule.Settings.MutateWeight) / 100.0); // The chance for a weight to be mutated
+            ADD_CONNECTION_CHANCE = (float)(Convert.ToDouble(CelesteBotInteropModule.Settings.AddConnectionChance) / 100.0); // The chance for a new connection to be added
+            ADD_NODE_CHANCE = (float)(Convert.ToDouble(CelesteBotInteropModule.Settings.AddNodeChance) / 100.0); // The chance for a new node to be added
+
+            WEIGHT_MAXIMUM = CelesteBotInteropModule.Settings.WeightMaximum; // Max magnitude a weight can be (+- this number)
+
+            VISION_2D_X_SIZE = CelesteBotInteropModule.Settings.XVisionSize; // X Size of the Vision array
+            VISION_2D_Y_SIZE = CelesteBotInteropModule.Settings.YVisionSize; // Y Size of the Vision array
+            INPUTS = VISION_2D_X_SIZE * VISION_2D_Y_SIZE + 6;
+            OUTPUTS = 5;
+
+            GENE_POSITIVE_COLOR = Color.DarkGreen;
+            GENE_NEGATIVE_COLOR = Color.Red;
+            THICKNESS_SCALE = 5; // How much the thickness increases per increase of 1 in the weight when drawing genes
+            NODE_RADIUS = 10;
+            NODE_LABEL_SCALE = new Vector2(0.2f, 0.2f);
+            TEXT_OFFSET = new Vector2(7, 7);
+            // Graphing Parameters
+            SavedBestFitnesses = new ArrayList();
+
+            // POPULATION PARAMETERS
+            EXTINCTION_SAVE_TOP = 5; // How many species to save when a mass extinction occurs
+            //POPULATION_SIZE = 50;
+
+            PLAYER_GRACE_BUFFER = 160; // How long between restarts should the next player be created, some arbitrary number of frames
+            PLAYER_DEATH_TIME_BEFORE_RESET = 2.5; // How many seconds after a player dies should the next player be created and the last one deleted
+    }
 
         public static void Draw()
         {

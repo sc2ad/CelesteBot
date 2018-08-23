@@ -54,8 +54,8 @@ namespace CelesteBot_Everest_Interop
         public static CelestePlayer GenPlayerTemp;
 
         private static int TalkCount = 0; // Counts how many times we attempted to talk to something
-        private static int TalkMaxAttempts = Settings.MaxTalkAttempts; // How many attempts until we give up attempting to talk to something
-        private static int MaxTimeSinceLastTalk = Settings.TalkFrameBuffer; // Number of skipped frames when we can talk if we have recently talked to something
+        private static int TalkMaxAttempts = 30; // How many attempts until we give up attempting to talk to something
+        private static int MaxTimeSinceLastTalk = 100; // Number of skipped frames when we can talk if we have recently talked to something
         private static int TimeSinceLastTalk = MaxTimeSinceLastTalk; // Keeps track of frames since last talk
 
         private static State state = State.None;
@@ -100,7 +100,11 @@ namespace CelesteBot_Everest_Interop
             population = new Population(Settings.OrganismsPerGeneration); // Requires Restart
             //GeneratePlayer();
             CurrentPlayer = population.GetCurrentPlayer();
-            
+
+            TalkMaxAttempts = Settings.MaxTalkAttempts;
+            MaxTimeSinceLastTalk = Settings.TalkFrameBuffer;
+
+            CelesteBotManager.Initialize();
         }
         //public static void GeneratePlayer()
         //{

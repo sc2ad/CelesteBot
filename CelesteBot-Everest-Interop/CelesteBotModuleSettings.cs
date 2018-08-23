@@ -38,13 +38,13 @@ namespace CelesteBot_Everest_Interop
         public int YVisionSize { get; set; } = 10;
         [SettingRange(50, 100), SettingNeedsRelaunch()]
         public int ActionThreshold { get; set; } = 55;
-        [SettingRange(50, 100), SettingNeedsRelaunch()]
+        [SettingRange(1, 100), SettingNeedsRelaunch()]
         public int ReRandomizeWeightChance { get; set; } = 20;
-        [SettingRange(50, 100), SettingNeedsRelaunch()]
+        [SettingRange(1, 100), SettingNeedsRelaunch()]
         public int MutateWeight { get; set; } = 65;
-        [SettingRange(50, 100), SettingNeedsRelaunch()]
+        [SettingRange(1, 100), SettingNeedsRelaunch()]
         public int AddConnectionChance { get; set; } = 55;
-        [SettingRange(50, 100), SettingNeedsRelaunch()]
+        [SettingRange(1, 100), SettingNeedsRelaunch()]
         public int AddNodeChance { get; set; } = 15;
     }
 }
