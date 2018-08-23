@@ -21,7 +21,7 @@ namespace CelesteBot_Everest_Interop
         public int GenerationsToSaveForGraph { get; set; } = 5;
         [SettingRange(10, 100), SettingNeedsRelaunch()]
         public int OrganismsPerGeneration { get; set; } = 30;
-        [SettingRange(1, 10)]
+        [SettingRange(1, 10), SettingNeedsRelaunch()]
         public int WeightMaximum { get; set; } = 5;
         public bool ShowBestFitness { get; set; } = true;
         [SettingRange(1, 25)]
@@ -32,5 +32,19 @@ namespace CelesteBot_Everest_Interop
         public int MaxTalkAttempts { get; set; } = 30;
         [SettingRange(60, 240)]
         public int TalkFrameBuffer { get; set; } = 100;
+        [SettingRange(4, 30), SettingNeedsRelaunch()]
+        public int XVisionSize { get; set; } = 10;
+        [SettingRange(4, 30), SettingNeedsRelaunch()]
+        public int YVisionSize { get; set; } = 10;
+        [SettingRange(50, 100), SettingNeedsRelaunch()]
+        public int ActionThreshold { get; set; } = 55;
+        [SettingRange(50, 100), SettingNeedsRelaunch()]
+        public int ReRandomizeWeightChance { get; set; } = 20;
+        [SettingRange(50, 100), SettingNeedsRelaunch()]
+        public int MutateWeight { get; set; } = 65;
+        [SettingRange(50, 100), SettingNeedsRelaunch()]
+        public int AddConnectionChance { get; set; } = 55;
+        [SettingRange(50, 100), SettingNeedsRelaunch()]
+        public int AddNodeChance { get; set; } = 15;
     }
 }

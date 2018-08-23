@@ -10,18 +10,18 @@ namespace CelesteBot_Everest_Interop
 {
     public class CelesteBotManager
     {
-        public static float ACTION_THRESHOLD = 0.55f;
-        public static float RE_RANDOMIZE_WEIGHT_CHANCE = 0.2f;
-        public static double WEIGHT_MUTATION_CHANCE = 0.65;
-        public static double ADD_CONNECTION_CHANCE = 0.55;
-        public static double ADD_NODE_CHANCE = 0.15;
+        public static float ACTION_THRESHOLD = (float)(Convert.ToDouble(CelesteBotInteropModule.Settings.ActionThreshold) / 100.0); // The value that must be surpassed for the output to be accepted
+        public static float RE_RANDOMIZE_WEIGHT_CHANCE = (float)(Convert.ToDouble(CelesteBotInteropModule.Settings.ReRandomizeWeightChance) / 100.0); // The chance for the weight to be re-randomized
+        public static double WEIGHT_MUTATION_CHANCE = (float)(Convert.ToDouble(CelesteBotInteropModule.Settings.MutateWeight) / 100.0); // The chance for a weight to be mutated
+        public static double ADD_CONNECTION_CHANCE = (float)(Convert.ToDouble(CelesteBotInteropModule.Settings.AddConnectionChance) / 100.0); // The chance for a new connection to be added
+        public static double ADD_NODE_CHANCE = (float)(Convert.ToDouble(CelesteBotInteropModule.Settings.AddNodeChance) / 100.0); // The chance for a new node to be added
 
         public static double WEIGHT_MAXIMUM = CelesteBotInteropModule.Settings.WeightMaximum; // Max magnitude a weight can be (+- this number)
         
-        public static int VISION_2D_X_SIZE = 5;
-        public static int VISION_2D_Y_SIZE = 5;
+        public static int VISION_2D_X_SIZE = CelesteBotInteropModule.Settings.XVisionSize; // X Size of the Vision array
+        public static int VISION_2D_Y_SIZE = CelesteBotInteropModule.Settings.YVisionSize; // Y Size of the Vision array
         public static int INPUTS = VISION_2D_X_SIZE * VISION_2D_Y_SIZE + 6;
-        public static int OUTPUTS = 6;
+        public static int OUTPUTS = 5;
 
         public static Color GENE_POSITIVE_COLOR = Color.DarkGreen;
         public static Color GENE_NEGATIVE_COLOR = Color.Red;

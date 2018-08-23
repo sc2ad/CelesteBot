@@ -37,7 +37,6 @@ namespace CelesteBot_Everest_Interop
             this.Jump = actions[2] > CelesteBotManager.ACTION_THRESHOLD;
             this.Dash = actions[3] > CelesteBotManager.ACTION_THRESHOLD;
             this.Grab = actions[4] > CelesteBotManager.ACTION_THRESHOLD;
-            this.Talk = actions[5] > CelesteBotManager.ACTION_THRESHOLD;
         }
 
         public InputData() { }
