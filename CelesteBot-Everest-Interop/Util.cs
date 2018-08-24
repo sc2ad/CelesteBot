@@ -57,5 +57,12 @@ namespace CelesteBot_Everest_Interop
 
             return objectOut;
         }
+        public static IEnumerable<T> SliceRow<T>(T[,] array, int row)
+        {
+            for (var i = 0; i < array.GetLength(0); i++)
+            {
+                yield return array[i, row];
+            }
+        }
     }
 }

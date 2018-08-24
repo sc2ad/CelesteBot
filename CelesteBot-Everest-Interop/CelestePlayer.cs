@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace CelesteBot_Everest_Interop
 {
-    public class CelestePlayer
+    public class CelestePlayer : IDisposable
     {
         int[,] Vision2D = new int[CelesteBotManager.VISION_2D_X_SIZE, CelesteBotManager.VISION_2D_Y_SIZE];
         public Player player;
@@ -144,6 +144,7 @@ namespace CelesteBot_Everest_Interop
             //Logger.Log(CelesteBotInteropModule.ModLogKey, "(X,Y) Under Player: (" + player.X + ", " + (player.Y + 4) + ")");
             // 1 = Air, 2 = Wall, 4 = Entity
             int[,] outInts = new int[visionY, visionX];
+            //MTexture[,] tiles = TileFinder.GetSplicedTileArray(visionX, visionY);
             for (int i = 0; i < visionY; i++)
             {
                 for (int j = 0; j < visionX; j++)
@@ -334,6 +335,15 @@ namespace CelesteBot_Everest_Interop
             {
                 return null;
             }
+        }
+
+        public void Dispose()
+        {
+            Vision2D = null;
+            Vision = null;
+            ReplayActions = null;
+            Brain = null;
+            Actions = null;
         }
     }
 

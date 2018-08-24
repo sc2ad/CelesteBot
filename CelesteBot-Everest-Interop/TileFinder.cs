@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace CelesteBot_Everest_Interop
 {
-    class TileFinder
+    public class TileFinder
     {
         private static Level celesteLevel;
         private static SolidTiles tiles;
@@ -173,5 +173,11 @@ namespace CelesteBot_Everest_Interop
                 return false;
             }
         }
+        //public static MTexture[,] GetSplicedTileArray(int visionX, int visionY)
+        //{
+        //    int underYIndex = visionY / 2 + 1;
+        //    int underXIndex = visionX / 2;
+        //    ArrayS
+        //}
     }
 }

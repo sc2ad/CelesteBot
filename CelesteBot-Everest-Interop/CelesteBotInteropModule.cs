@@ -91,6 +91,7 @@ namespace CelesteBot_Everest_Interop
         public override void Initialize()
         {
             base.Initialize();
+            CelesteBotManager.Initialize();
 
             // Hey, InputPlayer should be made to work without removing self when players die
             inputPlayer = new InputPlayer(Celeste.Celeste.Instance, new InputData()); // Blank InputData when constructing. Overwrite it when needing to update inputs
@@ -104,7 +105,6 @@ namespace CelesteBot_Everest_Interop
             TalkMaxAttempts = Settings.MaxTalkAttempts;
             MaxTimeSinceLastTalk = Settings.TalkFrameBuffer;
 
-            CelesteBotManager.Initialize();
         }
         //public static void GeneratePlayer()
         //{

@@ -242,8 +242,10 @@ namespace CelesteBot_Everest_Interop
             {
                 for (int i = Players.Count / 2; i < Players.Count; i++)
                 {
+                    CelestePlayer temp = (CelestePlayer)Players[i];
                     Players.RemoveAt(i);
                     i--;
+                    temp.Dispose();
                 }
             }
         }
