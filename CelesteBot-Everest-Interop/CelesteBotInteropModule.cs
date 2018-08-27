@@ -209,53 +209,97 @@ namespace CelesteBot_Everest_Interop
             if (IsKeyDown(Keys.Space))
             {
                 ShowBest = !ShowBest;
-            } else if (IsKeyDown(Keys.B))
+            }
+            else if (IsKeyDown(Keys.B) && IsKeyDown(Keys.LeftShift))
             {
-                RunBest = !RunBest;
+                RunBest = true;
+                population.BestPlayer = population.BestPlayer.CloneForReplay();
                 Reset(temp);
+                state = State.Disabled;
                 return;
-            } else if (IsKeyDown(Keys.S))
+            }
+            else if (IsKeyDown(Keys.B))
             {
-                RunThroughSpecies = !RunThroughSpecies;
+                RunBest = false;
+                population.BestPlayer = population.BestPlayer.CloneForReplay();
+                Reset(temp);
+                state = State.Disabled;
+                return;
+            }
+            else if (IsKeyDown(Keys.S) && IsKeyDown(Keys.LeftShift))
+            {
+                RunThroughSpecies = true;
                 UpToSpecies = 0;
                 Species s = (Species)population.Species[0];
                 CelestePlayer p = (CelestePlayer)s.Champ;
                 SpeciesChamp = p.CloneForReplay();
                 Reset(temp);
+                state = State.Disabled;
                 return;
-            } else if (IsKeyDown(Keys.G))
+            }
+            else if (IsKeyDown(Keys.S))
             {
-                ShowBestEachGen = !ShowBestEachGen;
+                RunThroughSpecies = true;
+                UpToSpecies = 0;
+                Species s = (Species)population.Species[0];
+                CelestePlayer p = (CelestePlayer)s.Champ;
+                SpeciesChamp = p.CloneForReplay();
+                Reset(temp);
+                state = State.Disabled;
+                return;
+            } 
+            else if (IsKeyDown(Keys.G) && IsKeyDown(Keys.LeftShift))
+            {
+                ShowBestEachGen = true;
                 UpToGen = 0;
                 CelestePlayer p = (CelestePlayer)population.GenPlayers[0];
                 GenPlayerTemp = p.CloneForReplay();
                 Reset(temp);
+                state = State.Disabled;
                 return;
-            } else if (IsKeyDown(Keys.OemBackslash))
+            }
+            else if (IsKeyDown(Keys.G))
+            {
+                ShowBestEachGen = false;
+                UpToGen = 0;
+                CelestePlayer p = (CelestePlayer)population.GenPlayers[0];
+                GenPlayerTemp = p.CloneForReplay();
+                Reset(temp);
+                state = State.Disabled;
+                return;
+            }
+            else if (IsKeyDown(Keys.OemBackslash))
             {
                 state = State.Running;
-            } else if (IsKeyDown(Keys.OemQuotes))
+            }
+            else if (IsKeyDown(Keys.OemQuotes))
             {
                 Population test = Util.DeSerializeObject(CelesteBotManager.CHECKPOINT_FILE_PREFIX + "_" + Convert.ToString(Settings.CheckpointToLoad) + ".ckp");
-                if (test != null) {
+                if (test != null)
+                {
                     population = test;
                 }
+                state = State.Disabled;
                 Logger.Log(ModLogKey, "Loaded Population from: " + CelesteBotManager.CHECKPOINT_FILE_PREFIX + "_" + Convert.ToString(Settings.CheckpointToLoad) + ".ckp");
                 Reset(temp);
                 return;
-            } else if (IsKeyDown(Keys.OemPeriod))
+            }
+            else if (IsKeyDown(Keys.OemPeriod))
             {
                 state = State.Disabled;
                 temp.QuickRestart = true;
-            } else if (IsKeyDown(Keys.OemComma))
+            }
+            else if (IsKeyDown(Keys.OemComma))
             {
                 state = State.Disabled;
                 temp.ESC = true;
-            } else if (IsKeyDown(Keys.OemQuestion))
+            }
+            else if (IsKeyDown(Keys.OemQuestion))
             {
                 state = State.Disabled;
                 //GeneratePlayer();
-            } else if (IsKeyDown(Keys.N))
+            }
+            else if (IsKeyDown(Keys.N))
             {
                 ShowNothing = !ShowNothing;
             }
