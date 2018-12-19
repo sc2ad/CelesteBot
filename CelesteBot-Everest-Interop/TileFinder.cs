@@ -14,7 +14,7 @@ namespace CelesteBot_Everest_Interop
     {
         private static Level celesteLevel;
         private static SolidTiles tiles;
-        private static MTexture[,] tileArray;
+        public static MTexture[,] tileArray;
 
         public static Vector2 TilesOffset = new Vector2(0,0); // TilesOffset for SolidsData offset
         public static void GetAllEntities()
@@ -59,7 +59,7 @@ namespace CelesteBot_Everest_Interop
             }
             TilesOffset = min;
         }
-        private static Level GetCelesteLevel()
+        public static Level GetCelesteLevel()
         {
             if (celesteLevel != null)
             {
@@ -141,6 +141,39 @@ namespace CelesteBot_Everest_Interop
                     if (!tileArray[(int)tile.X, (int)tile.Y].Equals("tilesets/scenery"))
                     {
                         return true;
+                    }
+                }
+                return false;
+            }
+            catch (NullReferenceException e)
+            {
+                return false;
+            }
+            catch (IndexOutOfRangeException e)
+            {
+                return false;
+            }
+        }
+        public static bool IsSpikeAtTile(Vector2 tile)
+        {
+            try
+            {
+
+                EntityList entities = Celeste.Celeste.Scene.Entities;
+
+                for (int i = 0; i < entities.Count; i++)
+                {
+                    if (entities[i].CollidePoint(RealFromTile(tile)) && entities[i].Collidable)
+                    {
+                        try
+                        {
+                            Spikes s = (Spikes)entities[i];
+                            return true;
+                        } catch (InvalidCastException e)
+                        {
+                            // Not a Spike at this tile
+                            return false;
+                        }
                     }
                 }
                 return false;

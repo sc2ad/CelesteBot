@@ -23,6 +23,9 @@ namespace CelesteBot_Everest_Interop
         public static int INPUTS = VISION_2D_X_SIZE * VISION_2D_Y_SIZE + 6;
         public static int OUTPUTS = 5;
 
+        // Moving Fitness Parameters
+        public static float UPDATE_TARGET_THRESHOLD = 8; // Pixels in distance between the fitness target and the current position before considering it "reached"
+
         public static Color GENE_POSITIVE_COLOR = Color.DarkGreen;
         public static Color GENE_NEGATIVE_COLOR = Color.Red;
         public static double THICKNESS_SCALE = 5; // How much the thickness increases per increase of 1 in the weight when drawing genes
@@ -62,6 +65,8 @@ namespace CelesteBot_Everest_Interop
             INPUTS = VISION_2D_X_SIZE * VISION_2D_Y_SIZE + 6;
             OUTPUTS = 5;
 
+            UPDATE_TARGET_THRESHOLD = CelesteBotInteropModule.Settings.UpdateTargetThreshold;
+
             GENE_POSITIVE_COLOR = Color.DarkGreen;
             GENE_NEGATIVE_COLOR = Color.Red;
             THICKNESS_SCALE = 5; // How much the thickness increases per increase of 1 in the weight when drawing genes
@@ -88,7 +93,15 @@ namespace CelesteBot_Everest_Interop
             Monocle.Draw.SpriteBatch.Begin();
             try
             {
-                DrawStandard(CelesteBotInteropModule.CurrentPlayer);
+                if (!CelesteBotInteropModule.FitnessAppendMode)
+                {
+                    DrawStandard(CelesteBotInteropModule.CurrentPlayer);
+                } else
+                {
+                    DrawAppendMode();
+                    Monocle.Draw.SpriteBatch.End();
+                    return;
+                }
                 if (CelesteBotInteropModule.DrawPlayer)
                 {
                     DrawPlayer(CelesteBotInteropModule.CurrentPlayer);
@@ -108,6 +121,10 @@ namespace CelesteBot_Everest_Interop
                 if (CelesteBotInteropModule.DrawGraph)
                 {
                     DrawGraph();
+                }
+                if (CelesteBotInteropModule.DrawTarget)
+                {
+                    DrawFitnessTarget(CelesteBotInteropModule.CurrentPlayer);
                 }
             }
             catch (NullReferenceException e)
@@ -223,9 +240,47 @@ namespace CelesteBot_Everest_Interop
                 int drawY = y;
                 for (int j = 0; j < a.Count; j++)
                 {
+                    
                     drawY += (int)dy;
                     Node temp = (Node)a[j];
-                    temp.DrawPos = new Vector2(drawX, drawY);
+                    // Handles drawing of 2D Vision array
+                    if (temp.Id < VISION_2D_X_SIZE * VISION_2D_Y_SIZE)
+                    {
+                        // This Node is an input, 2d vision node
+                        try
+                        {
+                            //Vector2 tileUnder = TileFinder.GetTileXY(new Vector2(p.player.X, p.player.Y + 4));
+                            //int underYIndex = VISION_2D_Y_SIZE / 2 + 1;
+                            //int underXIndex = VISION_2D_X_SIZE / 2;
+                            //Vector2 tilePos = new Vector2(tileUnder.X - underXIndex + temp.Id % VISION_2D_X_SIZE, tileUnder.Y - underYIndex + temp.Id / VISION_2D_Y_SIZE);
+                            //Vector2 realPos = TileFinder.RealFromTile(tilePos);
+                            ////Vector2 realPos = new Vector2(p.player.X - (underXIndex + temp.Id % VISION_2D_X_SIZE) * 8.0f, p.player.Y - (underYIndex + temp.Id / VISION_2D_Y_SIZE) * 8.0f);
+                            //// Graphical position and real position are very different things...
+                            //Level level = TileFinder.GetCelesteLevel();
+
+                            //// Level could be null if it hasn't been created yet, but it will just be caught, which is what we want.
+                            //Rectangle r = level.Bounds;
+                            //int leftBound = r.Center.X - r.Width/2;
+                            //int topBound = r.Center.Y - r.Height/2;
+                            //// Now convert player location into a friendly graphical location based off of these bounds!
+                            //Vector2 dPos = new Vector2(realPos.X - leftBound, realPos.Y - topBound);
+                            ////temp.DrawPos = realPos;
+                            ////Logger.Log(CelesteBotInteropModule.ModLogKey, "Left: " + leftBound + " Top: " + topBound + " With Offset from TileFinder: " + TileFinder.TilesOffset);
+                            Vector2 pos = p.player.Sprite.RenderPosition;
+                            //Vector2 pos = new Vector2((float)(p.player.Sprite.RenderPosition.X - VISION_2D_X_SIZE / 2 * dx), (float)(p.player.Sprite.RenderPosition.Y - VISION_2D_Y_SIZE / 2 * dy));
+                            temp.DrawPos = pos;
+                        }
+                        catch (NullReferenceException e)
+                        {
+                            // Player DNE.
+                            // Draw the positions in a standard way.
+                            temp.DrawPos = new Vector2(drawX, drawY);
+                        }
+                    }
+                    else
+                    {
+                        temp.DrawPos = new Vector2(drawX, drawY);
+                    }
                     a[j] = temp;
                 }
             }
@@ -344,7 +399,13 @@ namespace CelesteBot_Everest_Interop
                                 color = Color.DarkRed;
                                 thickness = 3;
                                 break;
+                            case 8:
+                                // Spike
+                                color = Color.Blue;
+                                thickness = 3;
+                                break;
                         }
+                        color *= 0.7f; // Transparency
                     } else
                     {
                         if (Math.Abs(n.OutputValue) < 1 && (n.Id < INPUTS || n.Id > INPUTS + OUTPUTS - 1))
@@ -402,6 +463,22 @@ namespace CelesteBot_Everest_Interop
                 Monocle.Draw.Line(new Vector2(x + xInterval * (SavedBestFitnesses.Count - 1), y + h + 3), new Vector2(x + xInterval * (SavedBestFitnesses.Count - 1), y + h - 3), Color.White);
                 ActiveFont.Draw(Convert.ToString(CelesteBotInteropModule.population.Gen - 1), new Vector2(x + xInterval * (SavedBestFitnesses.Count - 1), y + h + 15), Vector2.Zero, new Vector2(0.4f, 0.4f), Color.White);
             }
+        }
+
+        public static void DrawFitnessTarget(CelestePlayer player)
+        {
+            Vector2 target = player.Target;
+            if (target == null)
+            {
+                return;
+            }
+            Level a = TileFinder.GetCelesteLevel();
+
+            Logger.Log(CelesteBotInteropModule.ModLogKey, target.ToString());
+            Logger.Log(CelesteBotInteropModule.ModLogKey, "Camera: "+a.Camera.ScreenToCamera(target));
+            Logger.Log(CelesteBotInteropModule.ModLogKey, "Screen: "+a.Camera.CameraToScreen(target));
+            Monocle.Draw.Circle(a.Camera.CameraToScreen(target), 5, Color.DarkGreen, 20);
+            Monocle.Draw.Circle(a.Camera.ScreenToCamera(target), 5, Color.DarkGreen, 20);
         }
 
         static Dictionary<string, int> orgHash = new Dictionary<string, int>();
@@ -473,6 +550,21 @@ namespace CelesteBot_Everest_Interop
         {
             Monocle.Draw.Rect(0f, 60f, 600f, 30f, Color.Black * 0.8f);
             ActiveFont.Draw("Best Fitness: " + CelesteBotInteropModule.population.BestFitness, new Vector2(3, 60), Vector2.Zero, new Vector2(0.45f, 0.45f), Color.White);
+        }
+        public static void DrawAppendMode()
+        {
+            try
+            {
+                Player player = Celeste.Celeste.Scene.Tracker.GetEntity<Player>();
+                Level level = (Level)Celeste.Celeste.Scene;
+
+                Monocle.Draw.Rect(0f, 60f, 600f, 30f, Color.Black * 0.8f);
+                ActiveFont.Draw(level.Session.MapData.Filename + "_"+ level.Session.Level + ": [" + player.BottomCenter.X + ", " + player.BottomCenter.Y + ", " + player.Speed.X + ", " + player.Speed.Y + "]", new Vector2(3, 60), Vector2.Zero, new Vector2(0.45f, 0.45f), Color.White);
+            }
+            catch (Exception e)
+            {
+                // Pass
+            }
         }
     }
 }

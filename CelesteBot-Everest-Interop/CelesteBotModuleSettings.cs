@@ -17,12 +17,15 @@ namespace CelesteBot_Everest_Interop
         public bool ShowPlayerBrain { get; set; } = true;
         public bool ShowPlayerFitness { get; set; } = true;
         public bool ShowGraph { get; set; } = true;
+        public bool ShowTarget { get; set; } = true;
         [SettingRange(2, 25)]
         public int GenerationsToSaveForGraph { get; set; } = 5;
         [SettingRange(10, 100), SettingNeedsRelaunch()]
         public int OrganismsPerGeneration { get; set; } = 30;
         [SettingRange(1, 10), SettingNeedsRelaunch()]
         public int WeightMaximum { get; set; } = 5;
+        [SettingRange(2,50)]
+        public int UpdateTargetThreshold { get; set; } = 8;
         public bool ShowBestFitness { get; set; } = true;
         [SettingRange(1, 25)]
         public int CheckpointInterval { get; set; } = 3;

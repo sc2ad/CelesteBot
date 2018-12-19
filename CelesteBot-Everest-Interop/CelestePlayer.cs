@@ -35,6 +35,17 @@ namespace CelesteBot_Everest_Interop
         public string Name;
         public string SpeciesName = "Not yet defined";
 
+        // Target Fitness and stuff
+        public string FitnessPath = @"fitnesses.fit";
+        public Dictionary<string, List<Vector2>> positionFitnesses;
+        public Dictionary<string, List<Vector2>> velocityFitnesses;
+
+        public Vector2 Target;
+        public int TargetsPassed = 0;
+
+        private List<Vector2>.Enumerator enumForFitness;
+        private List<string>.Enumerator enumForLevels;
+
         private Vector2 MaxPlayerPos = new Vector2(-10000, -10000);
 
         public CelestePlayer()
@@ -43,6 +54,8 @@ namespace CelesteBot_Everest_Interop
             Name = CelesteBotManager.GetUniqueOrganismName();
             timer = new Stopwatch();
             deathTimer = new Stopwatch();
+            positionFitnesses = Util.GetPositionFitnesses(FitnessPath);
+            velocityFitnesses = Util.GetVelocityFitnesses(FitnessPath);
         }
         public void Update()
         {
@@ -149,7 +162,18 @@ namespace CelesteBot_Everest_Interop
             {
                 for (int j = 0; j < visionX; j++)
                 {
-                    int temp = TileFinder.IsWallAtTile(new Vector2(tileUnder.X - underXIndex + j, tileUnder.Y - underYIndex + i)) ? 2 : 1;
+                    if (TileFinder.tileArray != null)
+                    {
+                        //if (TileFinder.tileArray[(int)(tileUnder.X - underXIndex + j), (int)(tileUnder.Y - underYIndex + i)] != null)
+                        //{
+                        //    Logger.Log(CelesteBotInteropModule.ModLogKey, TileFinder.tileArray[(int)(tileUnder.X - underXIndex + j), (int)(tileUnder.Y - underYIndex + i)].ToString());
+                        //}
+                    }
+                    int temp = TileFinder.IsSpikeAtTile(new Vector2(tileUnder.X - underXIndex + j, tileUnder.Y - underYIndex + i)) ? 8 : 1;
+                    if (temp == 1)
+                    {
+                        temp = TileFinder.IsWallAtTile(new Vector2(tileUnder.X - underXIndex + j, tileUnder.Y - underYIndex + i)) ? 2 : 1;
+                    }
                     if (temp == 1)
                     {
                         temp = TileFinder.IsEntityAtTile(new Vector2(tileUnder.X - underXIndex + j, tileUnder.Y - underYIndex + i)) ? 4 : 1;
@@ -159,6 +183,11 @@ namespace CelesteBot_Everest_Interop
             }
             Vision2D = outInts;
         }
+        // Returns the convolution of the given kernel over the vision2d array with stride stride
+        //int[,] Convolve(int[,] vision2d, int[] kernel, int[] stride)
+        //{
+
+        //}
         void Look()
         {
             if (player == null)
@@ -198,7 +227,9 @@ namespace CelesteBot_Everest_Interop
             }
             //get the output of the neural network
             Actions = Brain.FeedForward(Vision);
-            CelesteBotInteropModule.inputPlayer.UpdateData(new InputData(Actions)); // Updates inputs to reflect neural network results
+            InputData inp = new InputData(Actions);
+            Logger.Log(CelesteBotInteropModule.ModLogKey, "Input Y: " + inp.MoveY);
+            CelesteBotInteropModule.inputPlayer.UpdateData(inp); // Updates inputs to reflect neural network results
             string test = "Attempted Actions: [";
             for (int i = 0; i < Actions.Length; i++)
             {
@@ -233,6 +264,37 @@ namespace CelesteBot_Everest_Interop
             outp.SpeciesName = SpeciesName;
             return outp;
         }
+        private void UpdateTarget()
+        {
+            if (Target == Vector2.Zero)
+            {
+                // Enum does not exist yet, lets make it.
+                Level level = TileFinder.GetCelesteLevel();
+                enumForFitness = positionFitnesses[level.Session.MapData.Filename + "_" + level.Session.Level + "_" + "0"].GetEnumerator();
+                enumForLevels = Util.GetRawLevelsInOrder(FitnessPath).GetEnumerator();
+                enumForLevels.MoveNext(); // Should always be one ahead of the current level/fitness
+                enumForFitness.MoveNext();
+                Target = enumForFitness.Current;
+                Logger.Log(CelesteBotInteropModule.ModLogKey, "Key: " + enumForLevels.Current + "==" + level.Session.MapData.Filename + "_" + level.Session.Level + "_" + "0" + " out: " + Target.ToString());
+            }
+            // Updates the target based off of the current position
+            if ((player.BottomCenter - Target).Length() < CelesteBotManager.UPDATE_TARGET_THRESHOLD)
+            {
+                enumForFitness.MoveNext();
+                enumForLevels.MoveNext();
+                if (enumForFitness.Current == null)
+                {
+                    // We are at the end of the enumerator. Now is the tricky part: We need to move to the next fitness.
+                    // We need to create an enumerator that we would use for the next level, but... how do we know the next level?
+                    enumForLevels.MoveNext();
+                    enumForFitness = positionFitnesses[enumForLevels.Current].GetEnumerator();
+                    enumForFitness.MoveNext();
+                }
+                Target = enumForFitness.Current;
+                // Use the enumerator to attempt to enumerate to next possible option. If it doesn't exist in this level (as in the enumerator is done) then use the next level's fitness
+                TargetsPassed++; // Increase the targets we have passed, which should give us a large boost in fitness
+            }
+        }
         // Calculates fitness
         public void CalculateFitness()
         {
@@ -245,7 +307,11 @@ namespace CelesteBot_Everest_Interop
             // The further it gets to the goal the better, the lifespan decreases.
             if (!Replay)
             {
-                Fitness = (((MaxPlayerPos - startPos).Length()) + AverageSpeed / 10000 + 110 / AverageStamina);
+                // This is incredibly important to resolve!
+                //Fitness = (((MaxPlayerPos - startPos).Length())/* + AverageSpeed / 10000 + 110 / AverageStamina*/);
+                // Need to keep track of the times that I have entered a certain screen. Can really take care of this at a later time tho.
+                UpdateTarget();
+                Fitness = 1000.0f/(player.BottomCenter - Target).LengthSquared() + TargetsPassed * 2;
                 // Could also create a fitness hash, using Levels as keys, and create Vector2's representing goal fitness locations
             }
             // MODIFY!

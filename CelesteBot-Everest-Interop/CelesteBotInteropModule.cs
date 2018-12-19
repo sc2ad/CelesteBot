@@ -41,6 +41,8 @@ namespace CelesteBot_Everest_Interop
         public static bool DrawDetails { get { return !ShowNothing && Settings.ShowDetailedPlayerInfo; } set { } }
         public static bool DrawBestFitness { get { return !ShowNothing && Settings.ShowBestFitness; } set { } }
         public static bool DrawGraph { get { return !ShowNothing && Settings.ShowGraph; } set { } }
+        public static bool DrawTarget { get { return !ShowNothing && Settings.ShowTarget; } set { } }
+        public static bool FitnessAppendMode = false;
         public static bool ShowNothing = false;
 
         public static bool ShowBest = false;
@@ -67,7 +69,11 @@ namespace CelesteBot_Everest_Interop
             Disabled = 2
         }
         private static KeyboardState kbState; // For handling the bot enabling/disabling (state changes)
+        private static int timer = 0; // Timer for Double-presses for fitness collection
+        private static int ResetTime = 60;
         public static InputPlayer inputPlayer;
+
+        private static Dictionary<string, int> times;
 
         private static bool IsKeyDown(Keys key)
         {
@@ -124,7 +130,7 @@ namespace CelesteBot_Everest_Interop
         public static void Engine_Draw(On.Monocle.Engine.orig_Draw original, Engine self, GameTime time)
         {
             original(self, time);
-            if (state == State.Running || Settings.DrawAlways) {
+            if (state == State.Running || Settings.DrawAlways || FitnessAppendMode) {
                 CelesteBotManager.Draw();
             }
         }
@@ -205,6 +211,47 @@ namespace CelesteBot_Everest_Interop
             
             
             kbState = Keyboard.GetState();
+
+            if (IsKeyDown(Keys.A))
+            {
+                FitnessAppendMode = !FitnessAppendMode;
+            }
+            if (FitnessAppendMode)
+            {
+                if (IsKeyDown(Keys.Space) && timer <= 0)
+                {
+                    // Add it to the file
+                    try
+                    {
+                        
+                        Celeste.Player player = Celeste.Celeste.Scene.Tracker.GetEntity<Celeste.Player>();
+                        Celeste.Level level = (Celeste.Level)Celeste.Celeste.Scene;
+                        if (times.ContainsKey(level.Session.MapData.Filename + "_" + level.Session.Level))
+                        {
+                            if (IsKeyDown(Keys.LeftShift))
+                            {
+                                times[level.Session.MapData.Filename + "_" + level.Session.Level]++;
+                            }
+                        }
+                        else
+                        {
+                            times[level.Session.MapData.Filename + "_" + level.Session.Level] = 0;
+                        }
+                        System.IO.File.AppendAllText(@"fitnesses.fit", level.Session.MapData.Filename + "_" + level.Session.Level + "_" + times[level.Session.MapData.Filename + "_" + level.Session.Level] + ": ["+player.BottomCenter.X+", "+player.BottomCenter.Y+", "+player.Speed.X+", "+player.Speed.Y+"]\n");
+                        
+                    } catch (NullReferenceException e)
+                    {
+                        // The room/player does not exist, just skip this
+                    } catch (InvalidCastException e)
+                    {
+                        // The room isn't really a room, just skip
+                    }
+                    timer = ResetTime;
+                }
+                timer--;
+                original();
+                return;
+            }
 
             if (IsKeyDown(Keys.Space))
             {
@@ -483,6 +530,11 @@ namespace CelesteBot_Everest_Interop
             original(self, last, next);
             CurrentPlayer.SetupVision();
             TileFinder.GetAllEntities();
+            ResetRooms();
+        }
+        private static void ResetRooms()
+        {
+            times = new Dictionary<string, int>();
         }
     }
 }
