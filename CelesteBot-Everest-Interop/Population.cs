@@ -57,7 +57,6 @@ namespace CelesteBot_Everest_Interop
             {
                 CelestePlayer p = (CelestePlayer)Pop[CurrentIndex];
                 p.Update();
-                Logger.Log(CelesteBotInteropModule.ModLogKey, "Current Index: " + CurrentIndex);
             }
         }
 

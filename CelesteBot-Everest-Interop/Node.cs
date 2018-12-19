@@ -62,7 +62,7 @@ namespace CelesteBot_Everest_Interop
         // Sigmoid
         public float Sigmoid(float x)
         {
-            float y = 1 / (1 + (float)Math.Pow((float)Math.E, -4.9 * x));
+            float y = 2.0f / (1.0f + (float)Math.Pow((float)Math.E, -4.9 * x)) - 1.0f; // This is to attempt to make it so that negative and positive genes work properly!
             return y;
         }
         // Returns whether this node is connected to the parameter node

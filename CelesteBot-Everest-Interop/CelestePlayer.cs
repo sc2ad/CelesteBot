@@ -228,7 +228,6 @@ namespace CelesteBot_Everest_Interop
             //get the output of the neural network
             Actions = Brain.FeedForward(Vision);
             InputData inp = new InputData(Actions);
-            Logger.Log(CelesteBotInteropModule.ModLogKey, "Input Y: " + inp.MoveY);
             CelesteBotInteropModule.inputPlayer.UpdateData(inp); // Updates inputs to reflect neural network results
             string test = "Attempted Actions: [";
             for (int i = 0; i < Actions.Length; i++)
@@ -270,19 +269,26 @@ namespace CelesteBot_Everest_Interop
             {
                 // Enum does not exist yet, lets make it.
                 Level level = TileFinder.GetCelesteLevel();
-                enumForFitness = positionFitnesses[level.Session.MapData.Filename + "_" + level.Session.Level + "_" + "0"].GetEnumerator();
-                enumForLevels = Util.GetRawLevelsInOrder(FitnessPath).GetEnumerator();
-                enumForLevels.MoveNext(); // Should always be one ahead of the current level/fitness
-                enumForFitness.MoveNext();
-                Target = enumForFitness.Current;
-                Logger.Log(CelesteBotInteropModule.ModLogKey, "Key: " + enumForLevels.Current + "==" + level.Session.MapData.Filename + "_" + level.Session.Level + "_" + "0" + " out: " + Target.ToString());
+                try
+                {
+                    enumForFitness = positionFitnesses[level.Session.MapData.Filename + "_" + level.Session.Level + "_" + "0"].GetEnumerator();
+                    enumForLevels = Util.GetRawLevelsInOrder(FitnessPath).GetEnumerator();
+                    enumForLevels.MoveNext(); // Should always be one ahead of the current level/fitness
+                    enumForFitness.MoveNext();
+                    Target = enumForFitness.Current;
+                    Logger.Log(CelesteBotInteropModule.ModLogKey, "Key: " + enumForLevels.Current + "==" + level.Session.MapData.Filename + "_" + level.Session.Level + "_" + "0" + " out: " + Target.ToString());
+                } catch (KeyNotFoundException e)
+                {
+                    // In a level that doesn't have a valid fitness enumerator
+                    Target = new Vector2(10000, 10000);
+                }
             }
             // Updates the target based off of the current position
             if ((player.BottomCenter - Target).Length() < CelesteBotManager.UPDATE_TARGET_THRESHOLD)
             {
                 enumForFitness.MoveNext();
                 enumForLevels.MoveNext();
-                if (enumForFitness.Current == null)
+                if (enumForFitness.Current == null || enumForFitness.Current == Vector2.Zero)
                 {
                     // We are at the end of the enumerator. Now is the tricky part: We need to move to the next fitness.
                     // We need to create an enumerator that we would use for the next level, but... how do we know the next level?
@@ -290,6 +296,7 @@ namespace CelesteBot_Everest_Interop
                     enumForFitness = positionFitnesses[enumForLevels.Current].GetEnumerator();
                     enumForFitness.MoveNext();
                 }
+                Logger.Log(CelesteBotInteropModule.ModLogKey, "Updating Target Location: " + enumForFitness.Current);
                 Target = enumForFitness.Current;
                 // Use the enumerator to attempt to enumerate to next possible option. If it doesn't exist in this level (as in the enumerator is done) then use the next level's fitness
                 TargetsPassed++; // Increase the targets we have passed, which should give us a large boost in fitness
@@ -311,7 +318,7 @@ namespace CelesteBot_Everest_Interop
                 //Fitness = (((MaxPlayerPos - startPos).Length())/* + AverageSpeed / 10000 + 110 / AverageStamina*/);
                 // Need to keep track of the times that I have entered a certain screen. Can really take care of this at a later time tho.
                 UpdateTarget();
-                Fitness = 1000.0f/(player.BottomCenter - Target).LengthSquared() + TargetsPassed * 2;
+                Fitness = 1000.0f/(player.BottomCenter - Target).LengthSquared() + TargetsPassed * CelesteBotInteropModule.Settings.TargetReachedRewardFitness;
                 // Could also create a fitness hash, using Levels as keys, and create Vector2's representing goal fitness locations
             }
             // MODIFY!

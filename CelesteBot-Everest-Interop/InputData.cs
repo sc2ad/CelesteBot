@@ -28,17 +28,17 @@ namespace CelesteBot_Everest_Interop
             {
                 throw new Exception("Wrong count of outputs! Attempted with: " + actions.Length + " but should have been: " + CelesteBotManager.OUTPUTS);
             }
-            MoveX = actions[0] > CelesteBotManager.ACTION_THRESHOLD ? actions[0] : actions[0] < CelesteBotManager.ACTION_THRESHOLD - 0.5 ? -1 : 0;
-            MoveY = actions[1] > CelesteBotManager.ACTION_THRESHOLD ? actions[1] : actions[1] < CelesteBotManager.ACTION_THRESHOLD - 0.5 ? -1 : 0;
-            Logger.Log(CelesteBotInteropModule.ModLogKey, "Actions Y: " + actions[1] + " Move Y: " + MoveY + " Action Thresh: " + CelesteBotManager.ACTION_THRESHOLD);
+            MoveX = Math.Abs(actions[0]) > CelesteBotManager.ACTION_THRESHOLD ? actions[0] : 0;
+            MoveY = Math.Abs(actions[1]) > CelesteBotManager.ACTION_THRESHOLD ? actions[1] : 0;
 
             //this.ESC = actions[2] > CelesteBotManager.ACTION_THRESHOLD;
             //this.MenuConfirm = actions[3] > CelesteBotManager.ACTION_THRESHOLD;
             //this.MenuCancel = actions[4] > CelesteBotManager.ACTION_THRESHOLD;
             //this.QuickRestart = actions[5] > CelesteBotManager.ACTION_THRESHOLD;
-            Jump = actions[2] > CelesteBotManager.ACTION_THRESHOLD;
-            Dash = actions[3] > CelesteBotManager.ACTION_THRESHOLD;
-            Grab = actions[4] > CelesteBotManager.ACTION_THRESHOLD;
+            // + or - actions allow for buttons
+            Jump = Math.Abs(actions[2]) > CelesteBotManager.ACTION_THRESHOLD;
+            Dash = Math.Abs(actions[3]) > CelesteBotManager.ACTION_THRESHOLD;
+            Grab = Math.Abs(actions[4]) > CelesteBotManager.ACTION_THRESHOLD;
         }
 
         public InputData() { }
