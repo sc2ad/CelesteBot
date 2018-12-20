@@ -1,4 +1,4 @@
-﻿using Celeste;
+using Celeste;
 using Celeste.Mod;
 using Microsoft.Xna.Framework;
 using Monocle;
@@ -532,7 +532,7 @@ namespace CelesteBot_Everest_Interop
         }
         public static void DrawStandard(CelestePlayer p)
         {
-            Monocle.Draw.Rect(0f, 0f, 600f, 30f, Color.Black * 0.8f);
+            Monocle.Draw.Rect(0f, 0f, 600f, 60f, Color.Black * 0.8f);
             if (CelesteBotInteropModule.population.Gen == p.Gen)
             {
                 ActiveFont.Draw("Gen: " + p.Gen + " Species: " + p.SpeciesName + " Organism (" + (CelesteBotInteropModule.population.CurrentIndex + 1) + "/" + CelesteBotInteropModule.population.Pop.Count + "): " + p.Name, new Vector2(3, 0), Vector2.Zero, new Vector2(0.45f, 0.45f), Color.White);
@@ -540,6 +540,7 @@ namespace CelesteBot_Everest_Interop
             {
                 ActiveFont.Draw("Gen: " + CelesteBotInteropModule.population.Gen + " Species: " + p.SpeciesName + " Organism (" + (CelesteBotInteropModule.population.CurrentIndex + 1) + "/" + CelesteBotInteropModule.population.Pop.Count + "): " + p.Name, new Vector2(3, 0), Vector2.Zero, new Vector2(0.45f, 0.45f), Color.White);
             }
+            ActiveFont.Draw("Selected Target: " + p.Target, new Vector2(3, 30), Vector2.Zero, new Vector2(0.45f, 0.45f), Color.White);
         }
         public static void DrawDetails(CelestePlayer p)
         {
