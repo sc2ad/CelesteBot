@@ -287,7 +287,7 @@ namespace CelesteBot_Everest_Interop
             if ((player.BottomCenter - Target).Length() < CelesteBotManager.UPDATE_TARGET_THRESHOLD)
             {
                 enumForFitness.MoveNext();
-                enumForLevels.MoveNext();
+                //enumForLevels.MoveNext();
                 if (enumForFitness.Current == null || enumForFitness.Current == Vector2.Zero)
                 {
                     // We are at the end of the enumerator. Now is the tricky part: We need to move to the next fitness.

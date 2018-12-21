@@ -173,7 +173,8 @@ namespace CelesteBot_Everest_Interop
                     TalkCount = 0;
                 }
                 TimeSinceLastTalk++;
-                if (player.StateMachine.State == 11 && !player.InControl && !player.OnGround() && inputPlayer.LastData.Dash != true) // this makes sure we retry
+                Celeste.Level level = TileFinder.GetCelesteLevel();
+                if (player.StateMachine.State == 11 && !player.OnGround() && inputPlayer.LastData.Dash != true && (level.Session.MapData.Filename + "_" + level.Session.Level == "0-Intro_3"))// this makes sure we retry
                 {
                     // This means we are in the bird tutorial.
                     // Make us finish it right away.
@@ -183,6 +184,7 @@ namespace CelesteBot_Everest_Interop
                     data.Dash = true;
                     inputPlayer.UpdateData(data);
                     Logger.Log(ModLogKey, "The player is in the dash cutscene, so we tried to get them out of it by dashing.");
+                    
                     return;
                 }
                 
@@ -195,18 +197,21 @@ namespace CelesteBot_Everest_Interop
             }
             if (CelesteBotManager.CompleteRestart(inputPlayer))
             {
+                Logger.Log(ModLogKey, "Restarting!");
                 return;
             }
             // If in cutscene skip state, skip it the rest of the way.
             if (CelesteBotManager.CheckForCutsceneSkip(inputPlayer))
             {
+                Logger.Log(ModLogKey, "Confirmed a cutscene skip!");
                 return;
             }
             if (CelesteBotManager.CompleteCutsceneSkip(inputPlayer))
             {
+                Logger.Log(ModLogKey, "Completing a Cutscene Skip!");
                 return;
             }
-            
+
             InputData temp = new InputData();
             
             
