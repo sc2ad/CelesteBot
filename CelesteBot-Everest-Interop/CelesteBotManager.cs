@@ -1,4 +1,4 @@
-using Celeste;
+﻿using Celeste;
 using Celeste.Mod;
 using Microsoft.Xna.Framework;
 using Monocle;
@@ -21,7 +21,7 @@ namespace CelesteBot_Everest_Interop
         public static int VISION_2D_X_SIZE = 5; // X Size of the Vision array
         public static int VISION_2D_Y_SIZE = 5; // Y Size of the Vision array
         public static int INPUTS = VISION_2D_X_SIZE * VISION_2D_Y_SIZE + 6;
-        public static int OUTPUTS = 5;
+        public static int OUTPUTS = 6;
 
         // Moving Fitness Parameters
         public static float UPDATE_TARGET_THRESHOLD = 8; // Pixels in distance between the fitness target and the current position before considering it "reached"
@@ -63,7 +63,7 @@ namespace CelesteBot_Everest_Interop
             VISION_2D_X_SIZE = CelesteBotInteropModule.Settings.XVisionSize; // X Size of the Vision array
             VISION_2D_Y_SIZE = CelesteBotInteropModule.Settings.YVisionSize; // Y Size of the Vision array
             INPUTS = VISION_2D_X_SIZE * VISION_2D_Y_SIZE + 6;
-            OUTPUTS = 5;
+            OUTPUTS = 6;
 
             UPDATE_TARGET_THRESHOLD = CelesteBotInteropModule.Settings.UpdateTargetThreshold;
 
@@ -171,6 +171,7 @@ namespace CelesteBot_Everest_Interop
                 try
                 {
                     Level level = (Level)Celeste.Celeste.Scene;
+
                     if (level.InCutscene)
                     {
                         Logger.Log(CelesteBotInteropModule.ModLogKey, "Entered Cutscene! With Cutscene: "+Cutscene);
@@ -240,41 +241,39 @@ namespace CelesteBot_Everest_Interop
                 int drawY = y;
                 for (int j = 0; j < a.Count; j++)
                 {
-                    
-                    drawY += (int)dy;
                     Node temp = (Node)a[j];
+                    if (i == 0 && j >= VISION_2D_X_SIZE * VISION_2D_Y_SIZE)
+                    {
+                        //dy = (double)h / (double)(a.Count + 1 - VISION_2D_X_SIZE * VISION_2D_Y_SIZE);
+                        drawY = y + (int)((h * (j - VISION_2D_X_SIZE * VISION_2D_Y_SIZE + 1)) / (double)(a.Count + 1 - VISION_2D_X_SIZE * VISION_2D_Y_SIZE));
+                    }
+                    else
+                    {
+                        drawY += (int)dy;
+                    }
                     // Handles drawing of 2D Vision array
                     if (temp.Id < VISION_2D_X_SIZE * VISION_2D_Y_SIZE)
                     {
                         // This Node is an input, 2d vision node
                         try
                         {
-                            //Vector2 tileUnder = TileFinder.GetTileXY(new Vector2(p.player.X, p.player.Y + 4));
-                            //int underYIndex = VISION_2D_Y_SIZE / 2 + 1;
-                            //int underXIndex = VISION_2D_X_SIZE / 2;
-                            //Vector2 tilePos = new Vector2(tileUnder.X - underXIndex + temp.Id % VISION_2D_X_SIZE, tileUnder.Y - underYIndex + temp.Id / VISION_2D_Y_SIZE);
-                            //Vector2 realPos = TileFinder.RealFromTile(tilePos);
-                            ////Vector2 realPos = new Vector2(p.player.X - (underXIndex + temp.Id % VISION_2D_X_SIZE) * 8.0f, p.player.Y - (underYIndex + temp.Id / VISION_2D_Y_SIZE) * 8.0f);
-                            //// Graphical position and real position are very different things...
-                            //Level level = TileFinder.GetCelesteLevel();
+                            Vector2 renderPos = p.player.BottomCenter;
 
-                            //// Level could be null if it hasn't been created yet, but it will just be caught, which is what we want.
-                            //Rectangle r = level.Bounds;
-                            //int leftBound = r.Center.X - r.Width/2;
-                            //int topBound = r.Center.Y - r.Height/2;
-                            //// Now convert player location into a friendly graphical location based off of these bounds!
-                            //Vector2 dPos = new Vector2(realPos.X - leftBound, realPos.Y - topBound);
-                            ////temp.DrawPos = realPos;
-                            ////Logger.Log(CelesteBotInteropModule.ModLogKey, "Left: " + leftBound + " Top: " + topBound + " With Offset from TileFinder: " + TileFinder.TilesOffset);
-                            Vector2 pos = p.player.Sprite.RenderPosition;
-                            //Vector2 pos = new Vector2((float)(p.player.Sprite.RenderPosition.X - VISION_2D_X_SIZE / 2 * dx), (float)(p.player.Sprite.RenderPosition.Y - VISION_2D_Y_SIZE / 2 * dy));
+                            renderPos -= TileFinder.GetCelesteLevel().Camera.Position;
+                            renderPos *= 6f;
+                            double tileWidth = 48;
+                            double tileHeight = 48;
+
+                            Vector2 pos = new Vector2((float)(renderPos.X + (-VISION_2D_X_SIZE / 2 + temp.Id % VISION_2D_X_SIZE) * tileWidth), (float)(renderPos.Y + (-VISION_2D_Y_SIZE / 2 + temp.Id / VISION_2D_Y_SIZE) * tileHeight));
                             temp.DrawPos = pos;
+                            temp.DrawRadius = 2 * NODE_RADIUS;
                         }
                         catch (NullReferenceException e)
                         {
                             // Player DNE.
                             // Draw the positions in a standard way.
                             temp.DrawPos = new Vector2(drawX, drawY);
+                            temp.DrawRadius = NODE_RADIUS;
                         }
                     }
                     else
@@ -324,8 +323,9 @@ namespace CelesteBot_Everest_Interop
                 }
                 Monocle.Draw.Line(fromLoc, toLoc, color, thickness);
             }
+            Dictionary<int, string> Labels = new Dictionary<int, string>();
+
             ArrayList outputNodes = (ArrayList)nodes2d[nodes2d.Count - 1];
-            Dictionary<int, string> OutputLabels = new Dictionary<int, string>();
             for (int i = 0; i < outputNodes.Count; i++)
             {
                 Node n = (Node)outputNodes[i];
@@ -348,10 +348,41 @@ namespace CelesteBot_Everest_Interop
                         outputLabel = "Grab";
                         break;
                     case 5:
-                        outputLabel = "Talk";
+                        outputLabel = "LongJump";
                         break;
                 }
-                OutputLabels.Add(n.Id, outputLabel);
+                Labels.Add(n.Id, outputLabel);
+            }
+            ArrayList biases = (ArrayList)nodes2d[0];
+            for (int i = VISION_2D_X_SIZE * VISION_2D_Y_SIZE; i < biases.Count; i++)
+            {
+                Node n = (Node)biases[i];
+                string label = "";
+                switch (i - VISION_2D_X_SIZE * VISION_2D_Y_SIZE)
+                {
+                    case 0:
+                        label = "X";
+                        break;
+                    case 1:
+                        label = "Y";
+                        break;
+                    case 2:
+                        label = "Vx";
+                        break;
+                    case 3:
+                        label = "Vy";
+                        break;
+                    case 4:
+                        label = "Can Dash?";
+                        break;
+                    case 5:
+                        label = "Stamina";
+                        break;
+                    case 6:
+                        label = "Bias";
+                        break;
+                }
+                Labels.Add(n.Id, label);
             }
 
             // Draws all of the Nodes in order
@@ -405,7 +436,7 @@ namespace CelesteBot_Everest_Interop
                                 thickness = 3;
                                 break;
                         }
-                        color *= 0.7f; // Transparency
+                        //color *= 0.7f; // Transparency
                     } else
                     {
                         if (Math.Abs(n.OutputValue) < 1 && (n.Id < INPUTS || n.Id > INPUTS + OUTPUTS - 1))
@@ -413,15 +444,20 @@ namespace CelesteBot_Everest_Interop
                             Vector3 greenest = Color.DarkGreen.ToVector3();
                             Vector3 redest = Color.DarkRed.ToVector3();
                             Vector3 colorDelta = greenest - redest;
-                            color = new Color(redest + colorDelta - colorDelta * n.OutputValue);
+                            color = new Color(redest + colorDelta/2 + colorDelta/2 * n.OutputValue);
                         }
                     }
-                    Monocle.Draw.Circle(n.DrawPos, NODE_RADIUS, color, thickness, 100);
-                    ActiveFont.Draw(Convert.ToString(n.Id), new Vector2(n.DrawPos.X - TEXT_OFFSET.X, n.DrawPos.Y - TEXT_OFFSET.Y), Vector2.Zero, NODE_LABEL_SCALE, color);
-                    if (n.Layer == p.Brain.Layers-1)
+                    //Monocle.Draw.Circle(n.DrawPos, NODE_RADIUS, color, 0, 100);
+                    if (n.Id < VISION_2D_X_SIZE * VISION_2D_Y_SIZE)
                     {
-                        // Draw Output IDs
-                        ActiveFont.Draw(OutputLabels[n.Id], new Vector2(n.DrawPos.X + NODE_RADIUS+5, n.DrawPos.Y - NODE_RADIUS), Vector2.Zero, NODE_LABEL_SCALE * 2, color);
+                        thickness = 6;
+                    }
+                    Monocle.Draw.Circle(n.DrawPos, n.DrawRadius, color, thickness, 100);
+                    //ActiveFont.Draw(Convert.ToString(n.Id), new Vector2(n.DrawPos.X - TEXT_OFFSET.X, n.DrawPos.Y - TEXT_OFFSET.Y), Vector2.Zero, NODE_LABEL_SCALE, color);
+                    if (Labels.ContainsKey(n.Id))
+                    {
+                        // Draw Labels
+                        ActiveFont.Draw(Labels[n.Id], new Vector2(n.DrawPos.X + NODE_RADIUS + 5, n.DrawPos.Y - NODE_RADIUS), Vector2.Zero, NODE_LABEL_SCALE * 2, color);
                     }
                 }
             }

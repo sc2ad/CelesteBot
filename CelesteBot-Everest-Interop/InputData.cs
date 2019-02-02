@@ -10,11 +10,21 @@ namespace CelesteBot_Everest_Interop
 {
     public class InputData
     {
+        public static int LongJumpFrameCount = 20;
+        public static int LongJumpRemainingTimer = 0;
+        public static double LongJumpPersistentValue = 0;
+        public static int LastIndex = 0;
+
         public float MoveX;
         public float MoveY;
         public Vector2 Aim;
         public Vector2 MountainAim;
         public int Buttons;
+
+        public double JumpValue;
+        public double DashValue;
+        public double GrabValue;
+        public double LongJumpValue;
 
         
         ///<summary>
@@ -37,8 +47,32 @@ namespace CelesteBot_Everest_Interop
             //this.QuickRestart = actions[5] > CelesteBotManager.ACTION_THRESHOLD;
             // + or - actions allow for buttons
             Jump = Math.Abs(actions[2]) > CelesteBotManager.ACTION_THRESHOLD;
+            JumpValue = actions[2];
             Dash = Math.Abs(actions[3]) > CelesteBotManager.ACTION_THRESHOLD;
+            DashValue = actions[3];
             Grab = Math.Abs(actions[4]) > CelesteBotManager.ACTION_THRESHOLD;
+            GrabValue = actions[4];
+            LongJumpValue = actions[5];
+            bool LongJump = Math.Abs(actions[5]) > CelesteBotManager.ACTION_THRESHOLD;
+            if (LongJumpRemainingTimer > 0 && CelesteBotInteropModule.population.CurrentIndex == LastIndex)
+            {
+                Jump = true;
+                LongJumpRemainingTimer--;
+                LongJumpValue = LongJumpPersistentValue;
+                //JumpValue = LongJumpPersistentValue;
+            }
+            else if (LongJumpRemainingTimer > 0)
+            {
+                LongJumpRemainingTimer = 0;
+            }
+            else if (LongJump && LongJumpRemainingTimer == 0)
+            {
+                Jump = true;
+                LongJumpRemainingTimer = LongJumpFrameCount;
+                LongJumpPersistentValue = LongJumpValue;
+                //JumpValue = LongJumpValue;
+                LastIndex = CelesteBotInteropModule.population.CurrentIndex;
+            }
         }
 
         public InputData() { }

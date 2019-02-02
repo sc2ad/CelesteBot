@@ -95,7 +95,8 @@ namespace CelesteBot_Everest_Interop
             Look();
             Think();
             /*need to incorporate y here, maybe dist to goal here as well*/
-            if ((player.Speed.X == 0 || player.BottomCenter.X <= MaxPlayerPos.X) && !player.JustRespawned)
+            // Compare to distance to fitness target
+            if (player.Speed.Length() == 0 || (player.BottomCenter - Target).Length() >= (MaxPlayerPos - Target).Length() && !player.JustRespawned)
             {
                 if (!timer.IsRunning)
                 {
@@ -115,7 +116,8 @@ namespace CelesteBot_Everest_Interop
             Lifespan++;
             AverageSpeed += player.Speed.LengthSquared() / (float)Lifespan;
             AverageStamina += player.Stamina / (float)Lifespan;
-            if (player.BottomCenter.X > MaxPlayerPos.X || (player.BottomCenter.Y < MaxPlayerPos.Y && player.BottomCenter.X >= MaxPlayerPos.X))
+            // Needs to be replaced with minimum distance position, instead
+            if ((player.BottomCenter - Target).Length() < (MaxPlayerPos - Target).Length())
             {
                 MaxPlayerPos = player.BottomCenter;
             }
@@ -156,7 +158,7 @@ namespace CelesteBot_Everest_Interop
             //Logger.Log(CelesteBotInteropModule.ModLogKey, "Tile Under Player: (" + tileUnder.X + ", " + tileUnder.Y + ")");
             //Logger.Log(CelesteBotInteropModule.ModLogKey, "(X,Y) Under Player: (" + player.X + ", " + (player.Y + 4) + ")");
             // 1 = Air, 2 = Wall, 4 = Entity
-            int[,] outInts = new int[visionY, visionX];
+            int[,] outInts = new int[visionX, visionY];
             //MTexture[,] tiles = TileFinder.GetSplicedTileArray(visionX, visionY);
             for (int i = 0; i < visionY; i++)
             {
@@ -178,7 +180,7 @@ namespace CelesteBot_Everest_Interop
                     {
                         temp = TileFinder.IsEntityAtTile(new Vector2(tileUnder.X - underXIndex + j, tileUnder.Y - underYIndex + i)) ? 4 : 1;
                     }
-                    outInts[i, j] = temp;
+                    outInts[j, i] = temp;
                 }
             }
             Vision2D = outInts;

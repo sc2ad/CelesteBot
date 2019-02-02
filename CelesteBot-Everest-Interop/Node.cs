@@ -17,6 +17,7 @@ namespace CelesteBot_Everest_Interop
         public ArrayList OutputConnections = new ArrayList(); // All of the outputs of this Node (neuron)
         public int Layer = 0; // Where is the Node (neuron)? Layer 0 = input, Layer LAST = output
         public Vector2 DrawPos = new Vector2(); // For drawing (Genome)
+        public int DrawRadius = 0;
 
         public Node(int no)
         {

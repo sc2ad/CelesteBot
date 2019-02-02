@@ -26,6 +26,33 @@ namespace CelesteBot_Everest_Interop
         public void UpdateData(InputData newData)
         {
             LastData = Data;
+            // Handle + to - swaps
+            // These swaps should actually release the button for one frame
+            if ((LastData.JumpValue < 0 && newData.JumpValue > 0) || (newData.JumpValue < 0 && LastData.JumpValue > 0))
+            {
+                // Release for one frame
+                newData.Jump = false;
+                newData.JumpValue = 0;
+            }
+            if ((LastData.DashValue < 0 && newData.DashValue > 0) || (newData.DashValue < 0 && LastData.DashValue > 0))
+            {
+                // Release for one frame
+                newData.Dash = false;
+                newData.DashValue = 0;
+            }
+            if ((LastData.GrabValue < 0 && newData.GrabValue > 0) || (newData.GrabValue < 0 && LastData.GrabValue > 0))
+            {
+                // Release for one frame
+                newData.Grab = false;
+                newData.GrabValue = 0;
+            }
+            if ((LastData.LongJumpValue < 0 && newData.LongJumpValue > 0) || (newData.LongJumpValue < 0 && LastData.LongJumpValue > 0))
+            {
+                // Release for one frame
+                newData.Jump = false;
+                newData.JumpValue = 0;
+            }
+
             Data = newData;
         }
         public void HookInput()

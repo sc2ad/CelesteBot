@@ -26,7 +26,7 @@ namespace CelesteBot_Everest_Interop
         public int WeightMaximum { get; set; } = 5;
         [SettingRange(2,50)]
         public int UpdateTargetThreshold { get; set; } = 8;
-        [SettingRange(1, 20)]
+        [SettingRange(0, 20)]
         public int TargetReachedRewardFitness { get; set; } = 2;
         public bool ShowBestFitness { get; set; } = true;
         [SettingRange(1, 25)]
