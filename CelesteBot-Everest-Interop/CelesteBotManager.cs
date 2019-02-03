@@ -47,8 +47,22 @@ namespace CelesteBot_Everest_Interop
         public static string SPECIES_PATH = @"speciesNames.txt";
         public static string CHECKPOINT_FILE_PATH = @"Checkpoints";
         public static string CHECKPOINT_FILE_PREFIX = @"Checkpoints\checkpoint";
+        public static string QTableSavePath = @"QTable.tbl";
 
         public static bool Cutscene = false;
+
+        // Q Learning Variables
+        public static QTable QTable;
+        public static QState LastQState;
+        public static InputData LastQAction;
+        public static double LastQReward;
+        public static int QIterations = 0;
+
+        // Q Learning Settings
+        public static double QLearningRate { get { return CelesteBotInteropModule.Settings.QLearningRate / 100.0; } set { } }
+        public static double QGamma { get { return CelesteBotInteropModule.Settings.QGamma / 100.0; } set { } }
+        public static double QEpsilon = CelesteBotInteropModule.Settings.MaxQEpsilon / 100.0;
+        public static int QGraphIterations { get { return CelesteBotInteropModule.Settings.QGraphIterations; } set { } }
 
         public static void Initialize()
         {
@@ -129,9 +143,61 @@ namespace CelesteBot_Everest_Interop
             }
             catch (NullReferenceException e)
             {
-                // The game has yet to finish loading, just don't draw text for now.
+                // The game has yet to finish loading, just don't draw for now.
             }
             Monocle.Draw.SpriteBatch.End();
+        }
+        // WHAT IF: I ONLY UPDATE PREVIOUS STATES' QTABLE DATA
+        // BECAUSE I CANT PREDICT THE NEXT FRAME/STATE!
+        public static void UpdateQTable()
+        {
+            QEpsilon = CelesteBotInteropModule.Settings.MinQEpsilon / 100.0 + (CelesteBotInteropModule.Settings.MaxQEpsilon / 100.0 - CelesteBotInteropModule.Settings.MinQEpsilon / 100.0) * Math.Exp(-CelesteBotInteropModule.Settings.QEpsilonDecay / 10000.0 * QIterations);
+            if (QIterations % QGraphIterations == 0)
+            {
+                // Reuses Generations/Fitness for the Graph
+                SavedBestFitnesses.Add(CelesteBotInteropModule.CurrentPlayer.Fitness);
+                if (SavedBestFitnesses.Count > CelesteBotInteropModule.Settings.GenerationsToSaveForGraph)
+                {
+                    SavedBestFitnesses.RemoveAt(0);
+                }
+            }
+            // What is the current state?
+            QState current = new QState(CelesteBotInteropModule.CurrentPlayer);
+            // What is the current action?
+            CelesteBotInteropModule.CurrentPlayer.CalculateQAction();
+            InputData action = CelesteBotInteropModule.inputPlayer.Data;
+            // Calculate the reward for that action
+            // But I can't calculate the reward for an action that hasn't happened yet!
+            // Instead, calculate the reward for the action that already happened.
+            double reward = CelesteBotInteropModule.CurrentPlayer.CalculateReward();
+            if (LastQState == null)
+            {
+                // This is the first frame. We cannot look forward because we cannot predict frames
+                // So we just need to update lazily (update the last ones as opposed to the current ones)
+                // If the last is null, then we should immediately exit because no updating of the QTable happens
+                LastQState = current;
+                LastQAction = action;
+                LastQReward = reward;
+                return;
+            }
+            
+            if (QTable != null)
+            {
+                if (!QTable.ContainsState(LastQState))
+                {
+                    QTable.Add(current, action, 0);
+                }
+                else
+                {
+                    QTable.Update(LastQState, LastQAction, QFunction(QTable, LastQState, current, LastQAction, LastQReward));
+                }
+            }
+            LastQState = current;
+            LastQAction = action;
+            LastQReward = reward;
+        }
+        private static double QFunction(QTable table, QState state, QState newState, InputData action, double value) {
+            return table.GetValue(state, action) + QLearningRate * (value + QGamma * table.GetMax(newState) - table.GetValue(state, action));
         }
         public static bool CompleteCutsceneSkip(InputPlayer inputPlayer)
         {
@@ -209,6 +275,11 @@ namespace CelesteBot_Everest_Interop
         }
         public static void DrawPlayer(CelestePlayer p)
         {
+            if (CelesteBotInteropModule.LearningStyle == LearningStyle.Q)
+            {
+                // Not even going to bother
+                return;
+            }
             int x = 800;
             int y = 100;
             int w = 1200;
@@ -469,6 +540,7 @@ namespace CelesteBot_Everest_Interop
             int y = 100;
             int w = 600;
             int h = 300;
+            
             float xInterval = w / CelesteBotInteropModule.Settings.GenerationsToSaveForGraph;
             float maxFitness = 0;
             foreach (float i in SavedBestFitnesses)
@@ -508,13 +580,12 @@ namespace CelesteBot_Everest_Interop
             {
                 return;
             }
-            Level a = TileFinder.GetCelesteLevel();
+            Vector2 renderPos = target;
 
-            Logger.Log(CelesteBotInteropModule.ModLogKey, target.ToString());
-            Logger.Log(CelesteBotInteropModule.ModLogKey, "Camera: "+a.Camera.ScreenToCamera(target));
-            Logger.Log(CelesteBotInteropModule.ModLogKey, "Screen: "+a.Camera.CameraToScreen(target));
-            Monocle.Draw.Circle(a.Camera.CameraToScreen(target), 5, Color.DarkGreen, 20);
-            Monocle.Draw.Circle(a.Camera.ScreenToCamera(target), 5, Color.DarkGreen, 20);
+            renderPos -= TileFinder.GetCelesteLevel().Camera.Position;
+            renderPos *= 6f;
+
+            Monocle.Draw.Circle(renderPos, CelesteBotInteropModule.Settings.UpdateTargetThreshold, Color.Yellow, 20);
         }
 
         static Dictionary<string, int> orgHash = new Dictionary<string, int>();

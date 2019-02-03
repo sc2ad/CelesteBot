@@ -228,19 +228,39 @@ namespace CelesteBot_Everest_Interop
                 return;
             }
             //get the output of the neural network
-            Actions = Brain.FeedForward(Vision);
-            InputData inp = new InputData(Actions);
-            CelesteBotInteropModule.inputPlayer.UpdateData(inp); // Updates inputs to reflect neural network results
-            string test = "Attempted Actions: [";
-            for (int i = 0; i < Actions.Length; i++)
+            if (CelesteBotInteropModule.LearningStyle == LearningStyle.NEAT)
             {
-                test += Actions[i] + ", ";
+                Actions = Brain.FeedForward(Vision);
+                InputData inp = new InputData(Actions);
+                CelesteBotInteropModule.inputPlayer.UpdateData(inp); // Updates inputs to reflect neural network results
+            } else if (CelesteBotInteropModule.LearningStyle == LearningStyle.Q)
+            {
+                CalculateQAction();
             }
-            test += "]";
             //Logger.Log(CelesteBotInteropModule.ModLogKey, test);
             //Logger.Log(CelesteBotInteropModule.ModLogKey, "Attempted Input: " + new InputData(Actions));
             // Need to convert actions float values into controller inputs here.
             // Then needs to return controller inputs so that the player can move
+        }
+        // Calculates and Pushes an action according to QLearning
+        public void CalculateQAction()
+        {
+            // Should we be exploring or exploiting?
+            if (CelesteBotManager.QEpsilon <= new Random(Guid.NewGuid().GetHashCode()).NextDouble())
+            {
+                // Exploitation
+                CelesteBotInteropModule.inputPlayer.UpdateData(QTable.GetAction(CelesteBotManager.QTable.GetMaxActionIndex(new QState(this))));
+            } else
+            {
+                // Exploration
+                CelesteBotInteropModule.inputPlayer.UpdateData(QTable.GetRandomAction());
+            }
+        }
+        // Calculates a reward for QLearning
+        public double CalculateReward()
+        {
+            CalculateFitness();
+            return Fitness;
         }
         // Clones CelestePlayer
         public CelestePlayer Clone()

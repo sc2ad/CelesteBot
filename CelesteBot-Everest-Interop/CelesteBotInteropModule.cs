@@ -45,6 +45,9 @@ namespace CelesteBot_Everest_Interop
         public static bool FitnessAppendMode = false;
         public static bool ShowNothing = false;
 
+        // Learning
+        public static LearningStyle LearningStyle = LearningStyle.NEAT;
+
         public static bool ShowBest = false;
         public static bool RunBest = false;
         public static bool RunThroughSpecies = false;
@@ -111,6 +114,7 @@ namespace CelesteBot_Everest_Interop
             TalkMaxAttempts = Settings.MaxTalkAttempts;
             MaxTimeSinceLastTalk = Settings.TalkFrameBuffer;
 
+            CelesteBotManager.QTable = new QTable(); // Creates the QTable for QLearning
         }
         //public static void GeneratePlayer()
         //{
@@ -257,84 +261,104 @@ namespace CelesteBot_Everest_Interop
                 original();
                 return;
             }
-
-            if (IsKeyDown(Keys.Space))
+            if (LearningStyle == LearningStyle.NEAT)
             {
-                ShowBest = !ShowBest;
+                if (IsKeyDown(Keys.Space))
+                {
+                    ShowBest = !ShowBest;
+                }
+                else if (IsKeyDown(Keys.B) && IsKeyDown(Keys.LeftShift))
+                {
+                    RunBest = true;
+                    population.BestPlayer = population.BestPlayer.CloneForReplay();
+                    Reset(temp);
+                    state = State.Disabled;
+                    return;
+                }
+                else if (IsKeyDown(Keys.B))
+                {
+                    RunBest = false;
+                    population.BestPlayer = population.BestPlayer.CloneForReplay();
+                    Reset(temp);
+                    state = State.Disabled;
+                    return;
+                }
+                else if (IsKeyDown(Keys.S) && IsKeyDown(Keys.LeftShift))
+                {
+                    RunThroughSpecies = true;
+                    UpToSpecies = 0;
+                    Species s = (Species)population.Species[0];
+                    CelestePlayer p = (CelestePlayer)s.Champ;
+                    SpeciesChamp = p.CloneForReplay();
+                    Reset(temp);
+                    state = State.Disabled;
+                    return;
+                }
+                else if (IsKeyDown(Keys.S))
+                {
+                    RunThroughSpecies = true;
+                    UpToSpecies = 0;
+                    Species s = (Species)population.Species[0];
+                    CelestePlayer p = (CelestePlayer)s.Champ;
+                    SpeciesChamp = p.CloneForReplay();
+                    Reset(temp);
+                    state = State.Disabled;
+                    return;
+                }
+                else if (IsKeyDown(Keys.G) && IsKeyDown(Keys.LeftShift))
+                {
+                    ShowBestEachGen = true;
+                    UpToGen = 0;
+                    CelestePlayer p = (CelestePlayer)population.GenPlayers[0];
+                    GenPlayerTemp = p.CloneForReplay();
+                    Reset(temp);
+                    state = State.Disabled;
+                    return;
+                }
+                else if (IsKeyDown(Keys.G))
+                {
+                    ShowBestEachGen = false;
+                    UpToGen = 0;
+                    CelestePlayer p = (CelestePlayer)population.GenPlayers[0];
+                    GenPlayerTemp = p.CloneForReplay();
+                    Reset(temp);
+                    state = State.Disabled;
+                    return;
+                }
+            } else if (LearningStyle == LearningStyle.Q)
+            {
+                if (IsKeyDown(Keys.S) && IsKeyDown(Keys.LeftShift))
+                {
+                    QTable.SaveTable(CelesteBotManager.QTable, CelesteBotManager.QTableSavePath);
+                }
             }
-            else if (IsKeyDown(Keys.B) && IsKeyDown(Keys.LeftShift))
-            {
-                RunBest = true;
-                population.BestPlayer = population.BestPlayer.CloneForReplay();
-                Reset(temp);
-                state = State.Disabled;
-                return;
-            }
-            else if (IsKeyDown(Keys.B))
-            {
-                RunBest = false;
-                population.BestPlayer = population.BestPlayer.CloneForReplay();
-                Reset(temp);
-                state = State.Disabled;
-                return;
-            }
-            else if (IsKeyDown(Keys.S) && IsKeyDown(Keys.LeftShift))
-            {
-                RunThroughSpecies = true;
-                UpToSpecies = 0;
-                Species s = (Species)population.Species[0];
-                CelestePlayer p = (CelestePlayer)s.Champ;
-                SpeciesChamp = p.CloneForReplay();
-                Reset(temp);
-                state = State.Disabled;
-                return;
-            }
-            else if (IsKeyDown(Keys.S))
-            {
-                RunThroughSpecies = true;
-                UpToSpecies = 0;
-                Species s = (Species)population.Species[0];
-                CelestePlayer p = (CelestePlayer)s.Champ;
-                SpeciesChamp = p.CloneForReplay();
-                Reset(temp);
-                state = State.Disabled;
-                return;
-            } 
-            else if (IsKeyDown(Keys.G) && IsKeyDown(Keys.LeftShift))
-            {
-                ShowBestEachGen = true;
-                UpToGen = 0;
-                CelestePlayer p = (CelestePlayer)population.GenPlayers[0];
-                GenPlayerTemp = p.CloneForReplay();
-                Reset(temp);
-                state = State.Disabled;
-                return;
-            }
-            else if (IsKeyDown(Keys.G))
-            {
-                ShowBestEachGen = false;
-                UpToGen = 0;
-                CelestePlayer p = (CelestePlayer)population.GenPlayers[0];
-                GenPlayerTemp = p.CloneForReplay();
-                Reset(temp);
-                state = State.Disabled;
-                return;
-            }
-            else if (IsKeyDown(Keys.OemBackslash))
+            if (IsKeyDown(Keys.OemBackslash))
             {
                 state = State.Running;
             }
             else if (IsKeyDown(Keys.OemQuotes))
             {
-                Population test = Util.DeSerializeObject(CelesteBotManager.CHECKPOINT_FILE_PREFIX + "_" + Convert.ToString(Settings.CheckpointToLoad) + ".ckp");
-                if (test != null)
+                if (LearningStyle == LearningStyle.NEAT)
                 {
-                    population = test;
+                    Population test = Util.DeSerializeObject(CelesteBotManager.CHECKPOINT_FILE_PREFIX + "_" + Convert.ToString(Settings.CheckpointToLoad) + ".ckp");
+                    if (test != null)
+                    {
+                        population = test;
+                    }
+                    state = State.Disabled;
+                    Logger.Log(ModLogKey, "Loaded Population from: " + CelesteBotManager.CHECKPOINT_FILE_PREFIX + "_" + Convert.ToString(Settings.CheckpointToLoad) + ".ckp");
+                    Reset(temp);
+                    original();
+                    return;
+                } else if (LearningStyle == LearningStyle.Q)
+                {
+                    state = State.Disabled;
+                    CelesteBotManager.QTable = QTable.Load(CelesteBotManager.QTableSavePath);
+                    Logger.Log(ModLogKey, "Loaded QTable from: " + CelesteBotManager.QTableSavePath);
+                    Reset(temp);
+                    original();
+                    return;
                 }
-                state = State.Disabled;
-                Logger.Log(ModLogKey, "Loaded Population from: " + CelesteBotManager.CHECKPOINT_FILE_PREFIX + "_" + Convert.ToString(Settings.CheckpointToLoad) + ".ckp");
-                Reset(temp);
-                return;
             }
             else if (IsKeyDown(Keys.OemPeriod))
             {
@@ -351,9 +375,13 @@ namespace CelesteBot_Everest_Interop
                 state = State.Disabled;
                 //GeneratePlayer();
             }
+            else if (IsKeyDown(Keys.N) && IsKeyDown(Keys.LeftShift))
+            {
+                ShowNothing = false;
+            }
             else if (IsKeyDown(Keys.N))
             {
-                ShowNothing = !ShowNothing;
+                ShowNothing = true;
             }
             if (state == State.Running)
             {
@@ -364,150 +392,174 @@ namespace CelesteBot_Everest_Interop
                     inputPlayer.UpdateData(temp);
                     return;
                 }
-                if (ShowBestEachGen)
+                if (LearningStyle == LearningStyle.NEAT)
                 {
-                    if (!GenPlayerTemp.Dead)
+                    if (ShowBestEachGen)
                     {
-                        CurrentPlayer = GenPlayerTemp;
-                        GenPlayerTemp.Update();
-                        if (GenPlayerTemp.Dead)
+                        if (!GenPlayerTemp.Dead)
                         {
-                            Reset(temp);
-                            UpToGen++;
-                            if (UpToGen >= population.GenPlayers.Count)
+                            CurrentPlayer = GenPlayerTemp;
+                            GenPlayerTemp.Update();
+                            if (GenPlayerTemp.Dead)
                             {
-                                UpToGen = 0;
-                                ShowBestEachGen = false;
-                            }
-                            else
-                            {
-                                GenPlayerTemp = (CelestePlayer)population.GenPlayers[UpToGen];
+                                Reset(temp);
+                                UpToGen++;
+                                if (UpToGen >= population.GenPlayers.Count)
+                                {
+                                    UpToGen = 0;
+                                    ShowBestEachGen = false;
+                                }
+                                else
+                                {
+                                    GenPlayerTemp = (CelestePlayer)population.GenPlayers[UpToGen];
+                                }
                             }
                         }
-                    }
-                    else
-                    {
-                        Reset(temp);
-                        UpToGen = 0;
-                        ShowBestEachGen = false;
-                    }
-                    original();
-                    return;
-                }
-                else if (RunThroughSpecies)
-                {
-                    if (!SpeciesChamp.Dead)
-                    {
-                        CurrentPlayer = SpeciesChamp;
-                        SpeciesChamp.Update();
-                        if (SpeciesChamp.Dead)
+                        else
                         {
                             Reset(temp);
-                            UpToSpecies++;
-                            if (UpToSpecies >= population.Species.Count)
+                            UpToGen = 0;
+                            ShowBestEachGen = false;
+                        }
+                        original();
+                        return;
+                    }
+                    else if (RunThroughSpecies)
+                    {
+                        if (!SpeciesChamp.Dead)
+                        {
+                            CurrentPlayer = SpeciesChamp;
+                            SpeciesChamp.Update();
+                            if (SpeciesChamp.Dead)
                             {
-                                UpToSpecies = 0;
-                                RunThroughSpecies = false;
-                            }
-                            else
-                            {
-                                Species s = (Species)population.Species[UpToSpecies];
-                                SpeciesChamp = s.Champ.CloneForReplay();
+                                Reset(temp);
+                                UpToSpecies++;
+                                if (UpToSpecies >= population.Species.Count)
+                                {
+                                    UpToSpecies = 0;
+                                    RunThroughSpecies = false;
+                                }
+                                else
+                                {
+                                    Species s = (Species)population.Species[UpToSpecies];
+                                    SpeciesChamp = s.Champ.CloneForReplay();
+                                }
                             }
                         }
+                        else
+                        {
+                            Reset(temp);
+                            UpToSpecies = 0;
+                            RunThroughSpecies = false;
+                        }
+                        original();
+                        return;
                     }
-                    else
+                    else if (RunBest)
                     {
-                        Reset(temp);
-                        UpToSpecies = 0;
-                        RunThroughSpecies = false;
-                    }
-                    original();
-                    return;
-                }
-                else if (RunBest)
-                {
-                    if (!population.BestPlayer.Dead)
-                    {
-                        CurrentPlayer = population.BestPlayer;
-                        population.BestPlayer.Update();
-                        if (population.BestPlayer.Dead)
+                        if (!population.BestPlayer.Dead)
+                        {
+                            CurrentPlayer = population.BestPlayer;
+                            population.BestPlayer.Update();
+                            if (population.BestPlayer.Dead)
+                            {
+                                Reset(temp);
+                                RunBest = false;
+                                population.BestPlayer = population.BestPlayer.CloneForReplay();
+                            }
+                        }
+                        else
                         {
                             Reset(temp);
                             RunBest = false;
                             population.BestPlayer = population.BestPlayer.CloneForReplay();
-                        }
-                    }
-                    else
-                    {
-                        Reset(temp);
-                        RunBest = false;
-                        population.BestPlayer = population.BestPlayer.CloneForReplay();
-                    }
-                    original();
-                    return;
-                }
-                else
-                {
-                    if (!population.Done())
-                    {
-
-                        // Run the population till they die
-                        population.UpdateAlive();
-                        CurrentPlayer = population.GetCurrentPlayer();
-                        if (CurrentPlayer.Dead)
-                        {
-                            temp.QuickRestart = true;
-                            buffer = CelesteBotManager.PLAYER_GRACE_BUFFER; // sets the buffer to desired wait time... magic
-                            if (CurrentPlayer.Fitness > population.BestFitness)
-                            {
-                                population.BestFitness = CurrentPlayer.Fitness;
-                                population.BestPlayer = CurrentPlayer.CloneForReplay();
-                            }
-                            population.CurrentIndex++;
-                            if (population.CurrentIndex >= population.Pop.Count)
-                            {
-                                Logger.Log(CelesteBotInteropModule.ModLogKey, "Population Current Index out of bounds, performing evolution...");
-                                //inputPlayer.UpdateData(temp);
-                                //original();
-                                //return;
-                            }
-                            inputPlayer.UpdateData(temp);
                         }
                         original();
                         return;
                     }
                     else
                     {
-                        // Do some checkpointing here maybe
-
-                        if (population.Gen % Settings.CheckpointInterval == 0)
+                        if (!population.Done())
                         {
-                            // Time to checkpoint!
-                            // Lets save the population as-is into a binary file.
-                            Directory.CreateDirectory(CelesteBotManager.CHECKPOINT_FILE_PATH);
-                            Util.SerializeObject(population, CelesteBotManager.CHECKPOINT_FILE_PREFIX + "_" + population.Gen + ".ckp");
-                            Logger.Log(ModLogKey, "Saved Population to: " + CelesteBotManager.CHECKPOINT_FILE_PREFIX + "_" + population.Gen + ".ckp");
-                        }
 
-                        float bFit = 0;
-                        // Gets best fitness without looking at first (previous best) organism
-                        for (int i = 1; i < population.Pop.Count; i++)
-                        {
-                            CelestePlayer p = (CelestePlayer)population.Pop[i];
-                            if (p.GetFitness() > bFit)
+                            // Run the population till they die
+                            population.UpdateAlive();
+                            CurrentPlayer = population.GetCurrentPlayer();
+                            if (CurrentPlayer.Dead)
                             {
-                                bFit = p.GetFitness();
+                                temp.QuickRestart = true;
+                                buffer = CelesteBotManager.PLAYER_GRACE_BUFFER; // sets the buffer to desired wait time... magic
+                                if (CurrentPlayer.Fitness > population.BestFitness)
+                                {
+                                    population.BestFitness = CurrentPlayer.Fitness;
+                                    population.BestPlayer = CurrentPlayer.CloneForReplay();
+                                }
+                                population.CurrentIndex++;
+                                if (population.CurrentIndex >= population.Pop.Count)
+                                {
+                                    Logger.Log(CelesteBotInteropModule.ModLogKey, "Population Current Index out of bounds, performing evolution...");
+                                    //inputPlayer.UpdateData(temp);
+                                    //original();
+                                    //return;
+                                }
+                                inputPlayer.UpdateData(temp);
                             }
+                            original();
+                            return;
                         }
-                        CelesteBotManager.SavedBestFitnesses.Add(bFit);
-                        if (CelesteBotManager.SavedBestFitnesses.Count > Settings.GenerationsToSaveForGraph)
+                        else
                         {
-                            CelesteBotManager.SavedBestFitnesses.RemoveAt(0);
+                            // Do some checkpointing here maybe
+
+                            if (population.Gen % Settings.CheckpointInterval == 0)
+                            {
+                                // Time to checkpoint!
+                                // Lets save the population as-is into a binary file.
+                                Directory.CreateDirectory(CelesteBotManager.CHECKPOINT_FILE_PATH);
+                                Util.SerializeObject(population, CelesteBotManager.CHECKPOINT_FILE_PREFIX + "_" + population.Gen + ".ckp");
+                                Logger.Log(ModLogKey, "Saved Population to: " + CelesteBotManager.CHECKPOINT_FILE_PREFIX + "_" + population.Gen + ".ckp");
+                            }
+
+                            float bFit = 0;
+                            // Gets best fitness without looking at first (previous best) organism
+                            for (int i = 1; i < population.Pop.Count; i++)
+                            {
+                                CelestePlayer p = (CelestePlayer)population.Pop[i];
+                                if (p.GetFitness() > bFit)
+                                {
+                                    bFit = p.GetFitness();
+                                }
+                            }
+                            CelesteBotManager.SavedBestFitnesses.Add(bFit);
+                            if (CelesteBotManager.SavedBestFitnesses.Count > Settings.GenerationsToSaveForGraph)
+                            {
+                                CelesteBotManager.SavedBestFitnesses.RemoveAt(0);
+                            }
+                            population.NaturalSelection();
+
                         }
-                        population.NaturalSelection();
-                        
                     }
+                } else if (LearningStyle == LearningStyle.Q)
+                {
+                    if (CurrentPlayer == null)
+                    {
+                        CurrentPlayer = new CelestePlayer();
+                    }
+                    if (CurrentPlayer.Dead)
+                    {
+                        temp.QuickRestart = true;
+                        buffer = CelesteBotManager.PLAYER_GRACE_BUFFER; // sets the buffer to desired wait time... magic
+                        inputPlayer.UpdateData(temp);
+                        CelesteBotManager.QIterations++;
+                        CelesteBotManager.UpdateQTable();
+                        CurrentPlayer = new CelestePlayer();
+                    }
+                    else
+                    {
+                        CurrentPlayer.Update();
+                    }
+                    original();
+                    return;
                 }
             }
             inputPlayer.UpdateData(temp);

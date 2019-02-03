@@ -51,5 +51,17 @@ namespace CelesteBot_Everest_Interop
         public int AddConnectionChance { get; set; } = 55;
         [SettingRange(1, 100), SettingNeedsRelaunch()]
         public int AddNodeChance { get; set; } = 15;
+        [SettingRange(1, 100)]
+        public int QLearningRate { get; set; } = 80;
+        [SettingRange(1, 100)]
+        public int QGamma { get; set; } = 95;
+        [SettingRange(1, 100)]
+        public int MinQEpsilon { get; set; } = 10;
+        [SettingRange(1, 100)]
+        public int MaxQEpsilon { get; set; } = 100;
+        [SettingRange(1, 10000)]
+        public int QEpsilonDecay { get; set; } = 50; // Decays to minimum over this many iterations
+        [SettingRange(1, 1000)]
+        public int QGraphIterations { get; set; } = 50;
     }
 }

@@ -79,9 +79,12 @@
     <Compile Include="InputData.cs" />
     <Compile Include="InputNodes.cs" />
     <Compile Include="InputPlayer.cs" />
+    <Compile Include="LearningStyle.cs" />
     <Compile Include="Node.cs" />
     <Compile Include="Population.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="QState.cs" />
+    <Compile Include="QTable.cs" />
     <Compile Include="Species.cs" />
     <Compile Include="TileFinder.cs" />
     <Compile Include="Util.cs" />

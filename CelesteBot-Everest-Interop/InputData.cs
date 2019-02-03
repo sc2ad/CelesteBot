@@ -71,7 +71,13 @@ namespace CelesteBot_Everest_Interop
                 LongJumpRemainingTimer = LongJumpFrameCount;
                 LongJumpPersistentValue = LongJumpValue;
                 //JumpValue = LongJumpValue;
-                LastIndex = CelesteBotInteropModule.population.CurrentIndex;
+                if (CelesteBotInteropModule.LearningStyle == LearningStyle.NEAT)
+                {
+                    LastIndex = CelesteBotInteropModule.population.CurrentIndex;
+                } else if (CelesteBotInteropModule.LearningStyle == LearningStyle.Q)
+                {
+                    LastIndex = CelesteBotInteropModule.CurrentPlayer.GetHashCode();
+                }
             }
         }
 
