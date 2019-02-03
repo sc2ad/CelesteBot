@@ -335,7 +335,7 @@ namespace CelesteBot_Everest_Interop
                             double tileWidth = 48;
                             double tileHeight = 48;
 
-                            Vector2 pos = new Vector2((float)(renderPos.X + (-VISION_2D_X_SIZE / 2 + temp.Id % VISION_2D_X_SIZE) * tileWidth), (float)(renderPos.Y + (-VISION_2D_Y_SIZE / 2 + temp.Id / VISION_2D_Y_SIZE) * tileHeight));
+                            Vector2 pos = new Vector2((float)(renderPos.X + (-VISION_2D_X_SIZE / 2 + temp.Id % VISION_2D_X_SIZE) * tileWidth), (float)(renderPos.Y + (-VISION_2D_Y_SIZE / 2 + temp.Id / VISION_2D_Y_SIZE - 0.5) * tileHeight));
                             temp.DrawPos = pos;
                             temp.DrawRadius = 2 * NODE_RADIUS;
                         }
