@@ -46,7 +46,7 @@ namespace CelesteBot_Everest_Interop
         public static bool ShowNothing = false;
 
         // Learning
-        public static LearningStyle LearningStyle = LearningStyle.NEAT;
+        public static LearningStyle LearningStyle = LearningStyle.Q;
 
         public static bool ShowBest = false;
         public static bool RunBest = false;
@@ -114,7 +114,7 @@ namespace CelesteBot_Everest_Interop
             TalkMaxAttempts = Settings.MaxTalkAttempts;
             MaxTimeSinceLastTalk = Settings.TalkFrameBuffer;
 
-            CelesteBotManager.QTable = new QTable(); // Creates the QTable for QLearning
+            CelesteBotManager.qTable = new QTable(); // Creates the QTable for QLearning
         }
         //public static void GeneratePlayer()
         //{
@@ -329,7 +329,7 @@ namespace CelesteBot_Everest_Interop
             {
                 if (IsKeyDown(Keys.S) && IsKeyDown(Keys.LeftShift))
                 {
-                    QTable.SaveTable(CelesteBotManager.QTable, CelesteBotManager.QTableSavePath);
+                    QTable.SaveTable(CelesteBotManager.qTable, CelesteBotManager.QTableSavePath);
                 }
             }
             if (IsKeyDown(Keys.OemBackslash))
@@ -353,7 +353,7 @@ namespace CelesteBot_Everest_Interop
                 } else if (LearningStyle == LearningStyle.Q)
                 {
                     state = State.Disabled;
-                    CelesteBotManager.QTable = QTable.Load(CelesteBotManager.QTableSavePath);
+                    CelesteBotManager.qTable = QTable.Load(CelesteBotManager.QTableSavePath);
                     Logger.Log(ModLogKey, "Loaded QTable from: " + CelesteBotManager.QTableSavePath);
                     Reset(temp);
                     original();
@@ -547,15 +547,18 @@ namespace CelesteBot_Everest_Interop
                     }
                     if (CurrentPlayer.Dead)
                     {
-                        temp.QuickRestart = true;
-                        buffer = CelesteBotManager.PLAYER_GRACE_BUFFER; // sets the buffer to desired wait time... magic
-                        inputPlayer.UpdateData(temp);
                         CelesteBotManager.QIterations++;
-                        CelesteBotManager.UpdateQTable();
+                        CurrentPlayer.CalculateFitness();
+                        if (CurrentPlayer.Fitness > population.BestFitness)
+                        {
+                            population.BestFitness = CurrentPlayer.Fitness;
+                        }
                         CurrentPlayer = new CelestePlayer();
+                        Reset(temp);
                     }
                     else
                     {
+                        CelesteBotManager.UpdateQTable();
                         CurrentPlayer.Update();
                     }
                     original();
@@ -585,8 +588,11 @@ namespace CelesteBot_Everest_Interop
         public static void OnScene_Transition(On.Celeste.Celeste.orig_OnSceneTransition original, Celeste.Celeste self, Scene last, Scene next)
         {
             original(self, last, next);
-            CurrentPlayer.SetupVision();
-            TileFinder.GetAllEntities();
+            if (!CurrentPlayer.VisionSetup)
+            {
+                CurrentPlayer.SetupVision();
+            }
+            //TileFinder.GetAllEntities();
             ResetRooms();
         }
         private static void ResetRooms()

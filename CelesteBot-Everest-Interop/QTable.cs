@@ -41,11 +41,11 @@ namespace CelesteBot_Everest_Interop
         {
             if (dynamicTable != null)
             {
-                if (!dynamicTable.ContainsKey(state))
+                if (!ContainsState(state))
                 {
                     dynamicTable.Add(state, new double[actions]);
                 }
-                return dynamicTable[state][actionIndex];
+                return dynamicTable[GetStateInTable(state)][actionIndex];
             }
             return 0;
         }
@@ -75,11 +75,15 @@ namespace CelesteBot_Everest_Interop
             {
                 double[] temp = new double[actions];
                 temp[actionIndexTaken] = value;
-                if (dynamicTable.ContainsKey(state))
+                //Logger.Log(CelesteBotInteropModule.ModLogKey, "Updating State: " + state);
+                QState s = GetStateInTable(state);
+                if (s != null)
                 {
-                    dynamicTable[state] = temp;
+                    Logger.Log(CelesteBotInteropModule.ModLogKey, "State already exists!");
+                    dynamicTable[s] = temp;
                 } else
                 {
+                    Logger.Log(CelesteBotInteropModule.ModLogKey, "New State Added!");
                     Add(state, actionIndexTaken, value);
                 }
             }
@@ -94,9 +98,32 @@ namespace CelesteBot_Everest_Interop
         }
         public bool ContainsState(QState state)
         {
+            return GetStateInTable(state) != null;
+        }
+        public QState GetStateInTable(QState state)
+        {
             if (dynamicTable != null)
             {
-                return dynamicTable.ContainsKey(state);
+                foreach (QState s in dynamicTable.Keys)
+                {
+                    if (s.EqualsState(state))
+                    {
+                        //Logger.Log(CelesteBotInteropModule.ModLogKey, "s: " + s + " = " + state);
+                        return s;
+                    }
+                }
+                return null;
+            }
+            else
+            {
+                throw new Exception("Need to create the QTable before testing if it contains a state within it!");
+            }
+        }
+        public int GetStateCount()
+        {
+            if (dynamicTable != null)
+            {
+                return dynamicTable.Keys.Count;
             }
             else
             {
@@ -107,7 +134,13 @@ namespace CelesteBot_Everest_Interop
         {
             if (dynamicTable != null)
             {
-                return dynamicTable[state].Max();
+                QState s = GetStateInTable(state);
+                if (s == null)
+                {
+                    // The state doesn't exist in the dynamicTable
+                    return 0;
+                }
+                return dynamicTable[s].Max();
             } else
             {
                 throw new Exception("Need to create the QTable before getting the max of states within it!");
@@ -118,9 +151,13 @@ namespace CelesteBot_Everest_Interop
             if (dynamicTable != null)
             {
                 int maxIndex = 0;
-                for (int i = 1; i < dynamicTable[state].Length; i++)
+                if (!ContainsState(state))
                 {
-                    if (dynamicTable[state][i] > dynamicTable[state][maxIndex])
+                    return GetActionIndex(GetRandomAction());
+                }
+                for (int i = 1; i < dynamicTable[GetStateInTable(state)].Length; i++)
+                {
+                    if (dynamicTable[GetStateInTable(state)][i] > dynamicTable[GetStateInTable(state)][maxIndex])
                     {
                         maxIndex = i;
                     }
@@ -153,7 +190,14 @@ namespace CelesteBot_Everest_Interop
             }
             return actionIndexList[index];
         }
-
+        public static int GetActionCount()
+        {
+            if (actionIndexList == null)
+            {
+                CreateActionDictionary();
+            }
+            return actionIndexList.Count;
+        }
         public static void CreateActionDictionary()
         {
             actionIndexList = new List<InputData>();

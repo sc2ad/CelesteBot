@@ -48,6 +48,8 @@ namespace CelesteBot_Everest_Interop
 
         private Vector2 MaxPlayerPos = new Vector2(-10000, -10000);
 
+        public bool VisionSetup = false;
+
         public CelestePlayer()
         {
             Brain = new Genome(CelesteBotManager.INPUTS, CelesteBotManager.OUTPUTS);
@@ -134,6 +136,7 @@ namespace CelesteBot_Everest_Interop
             {
                 // The Scene hasn't been created yet.
             }
+            VisionSetup = true;
         }
         // 1 for tile (walls), -1 for entities (moving platforms, etc.)
         // Might add more ex: -2 = dashblox, ... or new Nodes indicating type of entity/tile along with input box
@@ -249,7 +252,7 @@ namespace CelesteBot_Everest_Interop
             if (CelesteBotManager.QEpsilon <= new Random(Guid.NewGuid().GetHashCode()).NextDouble())
             {
                 // Exploitation
-                CelesteBotInteropModule.inputPlayer.UpdateData(QTable.GetAction(CelesteBotManager.QTable.GetMaxActionIndex(new QState(this))));
+                CelesteBotInteropModule.inputPlayer.UpdateData(QTable.GetAction(CelesteBotManager.qTable.GetMaxActionIndex(new QState(this))));
             } else
             {
                 // Exploration
@@ -260,7 +263,7 @@ namespace CelesteBot_Everest_Interop
         public double CalculateReward()
         {
             CalculateFitness();
-            return Fitness;
+            return Fitness * 10;
         }
         // Clones CelestePlayer
         public CelestePlayer Clone()
@@ -303,6 +306,8 @@ namespace CelesteBot_Everest_Interop
                 {
                     // In a level that doesn't have a valid fitness enumerator
                     Target = new Vector2(10000, 10000);
+                    Logger.Log(CelesteBotInteropModule.ModLogKey, "Unknown Fitness Enumerator for: " + level.Session.MapData.Filename + "_" + level.Session.Level + "_" + "0");
+                    Logger.Log(CelesteBotInteropModule.ModLogKey, "With FitnessPath: " + enumForLevels);
                 }
             }
             // Updates the target based off of the current position

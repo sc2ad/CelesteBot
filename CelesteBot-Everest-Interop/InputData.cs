@@ -54,7 +54,7 @@ namespace CelesteBot_Everest_Interop
             GrabValue = actions[4];
             LongJumpValue = actions[5];
             bool LongJump = Math.Abs(actions[5]) > CelesteBotManager.ACTION_THRESHOLD;
-            if (LongJumpRemainingTimer > 0 && CelesteBotInteropModule.population.CurrentIndex == LastIndex)
+            if ((LongJumpRemainingTimer > 0 && CelesteBotInteropModule.population.CurrentIndex == LastIndex) || (LongJumpRemainingTimer > 0 && CelesteBotInteropModule.CurrentPlayer.GetHashCode() == LastIndex))
             {
                 Jump = true;
                 LongJumpRemainingTimer--;

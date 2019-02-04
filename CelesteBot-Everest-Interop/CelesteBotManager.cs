@@ -52,7 +52,7 @@ namespace CelesteBot_Everest_Interop
         public static bool Cutscene = false;
 
         // Q Learning Variables
-        public static QTable QTable;
+        public static QTable qTable;
         public static QState LastQState;
         public static InputData LastQAction;
         public static double LastQReward;
@@ -181,15 +181,15 @@ namespace CelesteBot_Everest_Interop
                 return;
             }
             
-            if (QTable != null)
+            if (qTable != null)
             {
-                if (!QTable.ContainsState(LastQState))
+                if (!qTable.ContainsState(LastQState))
                 {
-                    QTable.Add(current, action, 0);
+                    qTable.Add(current, action, 0);
                 }
                 else
                 {
-                    QTable.Update(LastQState, LastQAction, QFunction(QTable, LastQState, current, LastQAction, LastQReward));
+                    qTable.Update(LastQState, LastQAction, QFunction(qTable, LastQState, current, LastQAction, LastQReward));
                 }
             }
             LastQState = current;
@@ -640,12 +640,19 @@ namespace CelesteBot_Everest_Interop
         public static void DrawStandard(CelestePlayer p)
         {
             Monocle.Draw.Rect(0f, 0f, 600f, 60f, Color.Black * 0.8f);
-            if (CelesteBotInteropModule.population.Gen == p.Gen)
+            if (CelesteBotInteropModule.LearningStyle == LearningStyle.NEAT)
             {
-                ActiveFont.Draw("Gen: " + p.Gen + " Species: " + p.SpeciesName + " Organism (" + (CelesteBotInteropModule.population.CurrentIndex + 1) + "/" + CelesteBotInteropModule.population.Pop.Count + "): " + p.Name, new Vector2(3, 0), Vector2.Zero, new Vector2(0.45f, 0.45f), Color.White);
-            } else
+                if (CelesteBotInteropModule.population.Gen == p.Gen)
+                {
+                    ActiveFont.Draw("Gen: " + p.Gen + " Species: " + p.SpeciesName + " Organism (" + (CelesteBotInteropModule.population.CurrentIndex + 1) + "/" + CelesteBotInteropModule.population.Pop.Count + "): " + p.Name, new Vector2(3, 0), Vector2.Zero, new Vector2(0.45f, 0.45f), Color.White);
+                }
+                else
+                {
+                    ActiveFont.Draw("Gen: " + CelesteBotInteropModule.population.Gen + " Species: " + p.SpeciesName + " Organism (" + (CelesteBotInteropModule.population.CurrentIndex + 1) + "/" + CelesteBotInteropModule.population.Pop.Count + "): " + p.Name, new Vector2(3, 0), Vector2.Zero, new Vector2(0.45f, 0.45f), Color.White);
+                }
+            } else if (CelesteBotInteropModule.LearningStyle == LearningStyle.Q)
             {
-                ActiveFont.Draw("Gen: " + CelesteBotInteropModule.population.Gen + " Species: " + p.SpeciesName + " Organism (" + (CelesteBotInteropModule.population.CurrentIndex + 1) + "/" + CelesteBotInteropModule.population.Pop.Count + "): " + p.Name, new Vector2(3, 0), Vector2.Zero, new Vector2(0.45f, 0.45f), Color.White);
+                ActiveFont.Draw("QLearningRate: " + QLearningRate + " QGamma: " + QGamma + " QEpsilon: " + QEpsilon + " QIterations: " + QIterations, new Vector2(3, 0), Vector2.Zero, new Vector2(0.45f, 0.45f), Color.White);
             }
             ActiveFont.Draw("Selected Target: " + p.Target, new Vector2(3, 30), Vector2.Zero, new Vector2(0.45f, 0.45f), Color.White);
         }
@@ -657,7 +664,13 @@ namespace CelesteBot_Everest_Interop
         public static void DrawBestFitness()
         {
             Monocle.Draw.Rect(0f, 60f, 600f, 30f, Color.Black * 0.8f);
-            ActiveFont.Draw("Best Fitness: " + CelesteBotInteropModule.population.BestFitness, new Vector2(3, 60), Vector2.Zero, new Vector2(0.45f, 0.45f), Color.White);
+            if (CelesteBotInteropModule.LearningStyle == LearningStyle.NEAT)
+            {
+                ActiveFont.Draw("Best Fitness: " + CelesteBotInteropModule.population.BestFitness, new Vector2(3, 60), Vector2.Zero, new Vector2(0.45f, 0.45f), Color.White);
+            } else if (CelesteBotInteropModule.LearningStyle == LearningStyle.Q)
+            {
+                ActiveFont.Draw("Best Fitness: " + CelesteBotInteropModule.population.BestFitness + " QStateCount: " + qTable.GetStateCount() + " Actions: " + QTable.GetActionCount(), new Vector2(3, 60), Vector2.Zero, new Vector2(0.45f, 0.45f), Color.White);
+            }
         }
         public static void DrawAppendMode()
         {

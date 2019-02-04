@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Celeste.Mod;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,26 +13,52 @@ namespace CelesteBot_Everest_Interop
     /// </summary>
     public class QState
     {
-        public CelestePlayer player;
+        public float[] Vision;
         /// <summary>
         /// Constructs a state using the player.
         /// </summary>
         /// <param name="player">The player that the state should be created from</param>
         public QState(CelestePlayer player)
         {
-            this.player = player;
+            Vision = new float[player.Vision.Length];
+            player.Vision.CopyTo(Vision, 0);
+            Vision = Vision.Take(CelesteBotManager.VISION_2D_X_SIZE * CelesteBotManager.VISION_2D_Y_SIZE).ToArray();
+            //Vision = player.Vision;
         }
         // Compares their visions
-        public override bool Equals(object obj)
+        public bool EqualsState(QState st)
         {
             try
             {
-                return player.Vision == ((QState)obj).player.Vision;
-            } catch (InvalidCastException e)
+                for (int i = 0; i < Vision.Length; i++)
+                {
+                    //Logger.Log(CelesteBotInteropModule.ModLogKey, Vision[i] + " = " + st.Vision[i]);
+                    if (Vision[i] != st.Vision[i])
+                    {
+                        //Logger.Log(CelesteBotInteropModule.ModLogKey, Vision[i] + " != " + st.Vision[i]);
+                        return false;
+                    }
+                }
+                return true;
+            } catch (IndexOutOfRangeException e)
             {
+                Logger.Log(CelesteBotInteropModule.ModLogKey, "THIS SHOULD NEVER HAPPEN!");
                 // Oh well...
             }
-            return base.Equals(obj);
+            return false;
+        }
+        // ToString
+        public override string ToString()
+        {
+            string s = "";
+            //s += player;
+            s += "Vision: [";
+            foreach (float f in Vision)
+            {
+                s += f + ", ";
+            }
+            s += "]";
+            return s;
         }
     }
 }
