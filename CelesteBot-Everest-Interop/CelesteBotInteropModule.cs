@@ -42,6 +42,7 @@ namespace CelesteBot_Everest_Interop
         public static bool DrawBestFitness { get { return !ShowNothing && Settings.ShowBestFitness; } set { } }
         public static bool DrawGraph { get { return !ShowNothing && Settings.ShowGraph; } set { } }
         public static bool DrawTarget { get { return !ShowNothing && Settings.ShowTarget; } set { } }
+        public static bool DrawRewardGraph { get { return !ShowNothing && Settings.ShowRewardGraph && LearningStyle == LearningStyle.Q; } set { } }
         public static bool FitnessAppendMode = false;
         public static bool ShowNothing = false;
 
@@ -336,6 +337,12 @@ namespace CelesteBot_Everest_Interop
             if (IsKeyDown(Keys.OemBackslash))
             {
                 state = State.Running;
+                if (IsKeyDown(Keys.LeftShift) && LearningStyle == LearningStyle.Q)
+                {
+                    // Enter Evaluation mode!
+                    CelesteBotManager.QEpsilon = 0;
+                    CelesteBotManager.QIterations = 1000000;
+                }
             }
             else if (IsKeyDown(Keys.OemQuotes))
             {

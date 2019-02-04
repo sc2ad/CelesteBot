@@ -40,7 +40,7 @@ namespace CelesteBot_Everest_Interop
         public Dictionary<string, List<Vector2>> positionFitnesses;
         public Dictionary<string, List<Vector2>> velocityFitnesses;
 
-        public Vector2 Target;
+        public Vector2 Target = Vector2.Zero;
         public int TargetsPassed = 0;
 
         private List<Vector2>.Enumerator enumForFitness;
@@ -49,6 +49,7 @@ namespace CelesteBot_Everest_Interop
         private Vector2 MaxPlayerPos = new Vector2(-10000, -10000);
 
         public bool VisionSetup = false;
+        public List<double> Rewards;
 
         public CelestePlayer()
         {
@@ -58,6 +59,7 @@ namespace CelesteBot_Everest_Interop
             deathTimer = new Stopwatch();
             positionFitnesses = Util.GetPositionFitnesses(FitnessPath);
             velocityFitnesses = Util.GetVelocityFitnesses(FitnessPath);
+            Rewards = new List<double>();
         }
         public void Update()
         {
@@ -262,8 +264,24 @@ namespace CelesteBot_Everest_Interop
         // Calculates a reward for QLearning
         public double CalculateReward()
         {
-            CalculateFitness();
-            return Fitness * 10;
+            if (player == null)
+            {
+                return 0;
+            }
+            //CalculateFitness();
+            // DONT USE FITNESS, USE PLAYER POSITION INSTEAD OF MAX POSITION
+            double quasiFitness = 1000.0f / (player.BottomCenter - Target).LengthSquared() + TargetsPassed * CelesteBotInteropModule.Settings.TargetReachedRewardFitness;
+            double reward = quasiFitness * 10;
+            // Maybe change reward to be dFitness/dt?
+            if (reward >= -100)
+            {
+                Rewards.Add(reward);
+            }
+            if (Rewards.Count > CelesteBotInteropModule.Settings.FramesToSaveForRewardGraph)
+            {
+                Rewards.RemoveAt(0);
+            }
+            return reward;
         }
         // Clones CelestePlayer
         public CelestePlayer Clone()

@@ -18,6 +18,7 @@ namespace CelesteBot_Everest_Interop
         public bool ShowPlayerFitness { get; set; } = true;
         public bool ShowGraph { get; set; } = true;
         public bool ShowTarget { get; set; } = true;
+        public bool ShowRewardGraph { get; set; } = true;
         [SettingRange(2, 25)]
         public int GenerationsToSaveForGraph { get; set; } = 5;
         [SettingRange(10, 100), SettingNeedsRelaunch()]
@@ -63,5 +64,7 @@ namespace CelesteBot_Everest_Interop
         public int QEpsilonDecay { get; set; } = 50; // Decays to minimum over this many iterations
         [SettingRange(1, 1000)]
         public int QGraphIterations { get; set; } = 50;
+        [SettingRange(0, 1000)]
+        public int FramesToSaveForRewardGraph { get; set; } = 240;
     }
 }

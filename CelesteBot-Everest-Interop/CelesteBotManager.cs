@@ -140,6 +140,10 @@ namespace CelesteBot_Everest_Interop
                 {
                     DrawFitnessTarget(CelesteBotInteropModule.CurrentPlayer);
                 }
+                if (CelesteBotInteropModule.DrawRewardGraph)
+                {
+                    DrawRewardGraph();
+                }
             }
             catch (NullReferenceException e)
             {
@@ -268,15 +272,71 @@ namespace CelesteBot_Everest_Interop
         }
         public static void DrawPlayer(CelestePlayer p)
         {
-            if (CelesteBotInteropModule.LearningStyle == LearningStyle.Q)
-            {
-                // Not even going to bother
-                return;
-            }
             int x = 800;
             int y = 100;
             int w = 1200;
             int h = 800;
+
+            if (CelesteBotInteropModule.LearningStyle == LearningStyle.Q)
+            {
+                x = 1400;
+                w = 200;
+                Monocle.Draw.Rect(x, y, w, h, Color.Black * 0.8f); // Draws background
+
+                // Not even going to bother, just draw output
+
+                double dy = h / (double)(OUTPUTS + 1);
+
+                InputData data = CelesteBotInteropModule.inputPlayer.Data;
+
+                for (int i = 0; i < OUTPUTS; i++)
+                {
+                    string outputLabel = "";
+                    Color c = Color.White;
+
+                    double value = 0;
+
+                    switch (i)
+                    {
+                        case 0:
+                            outputLabel = "Left/Right";
+                            value = data.MoveX;
+                            break;
+                        case 1:
+                            outputLabel = "Up/Down";
+                            value = data.MoveY;
+                            break;
+                        case 2:
+                            outputLabel = "Jump";
+                            value = data.Jump ? 1 : 0;
+                            break;
+                        case 3:
+                            outputLabel = "Dash";
+                            value = data.Dash ? 1 : 0;
+                            break;
+                        case 4:
+                            outputLabel = "Grab";
+                            value = data.Grab ? 1 : 0;
+                            break;
+                        case 5:
+                            outputLabel = "LongJump";
+                            value = data.LongJumpValue;
+                            break;
+                    }
+                    if (value > 0)
+                    {
+                        c = Color.DarkGreen;
+                    }
+                    else if (value < 0)
+                    {
+                        c = Color.DarkRed;
+                    }
+
+                    Monocle.Draw.Circle(x + NODE_RADIUS*2, (int)(y + dy * (i+1)), 10, c, 3, 30);
+                    ActiveFont.Draw(outputLabel, new Vector2(x + NODE_RADIUS*3 + 5, (int)(y + dy * (i+1)) - NODE_RADIUS), Vector2.Zero, NODE_LABEL_SCALE * 2, c);
+                }
+                return;
+            }
 
             Monocle.Draw.Rect(x, y, w, h, Color.Black * 0.8f); // Draws background
 
@@ -543,26 +603,76 @@ namespace CelesteBot_Everest_Interop
                     maxFitness = i;
                 }
             }
-            float yInterval = (h / (maxFitness + 1));
+            float yInterval = (float)(h / (maxFitness));
+            float yBuffer = 10;
 
             Monocle.Draw.Rect(x, y, w, h, Color.Black * 0.8f); // Draws background
 
             Monocle.Draw.Line(new Vector2(x, y), new Vector2(x, y + h), Color.White);
             Monocle.Draw.Line(new Vector2(x, y + h), new Vector2(x + w, y + h), Color.White);
 
-            ActiveFont.Draw(Convert.ToString(maxFitness), new Vector2(x - 30, y + 10), Vector2.Zero, new Vector2(0.4f, 0.4f), Color.White);
+            ActiveFont.Draw("Fitness/Time", new Vector2(x + w / 2 - 100, y - 50), Vector2.Zero, new Vector2(0.4f, 0.4f), Color.White);
+            ActiveFont.Draw(String.Format("{0:0.000}", maxFitness), new Vector2(x - 70, y + 10), Vector2.Zero, new Vector2(0.4f, 0.4f), Color.White);
             if (SavedBestFitnesses.Count >= 2)
             {
                 for (int i = 0; i < SavedBestFitnesses.Count-1; i++)
                 {
                     float fitness = (float)SavedBestFitnesses[i];
                     float fitness2 = (float)SavedBestFitnesses[i + 1];
-                    Monocle.Draw.Line(new Vector2(x + xInterval * i, y + h - yInterval * fitness), new Vector2(x + xInterval * (i+1), y + h - yInterval * fitness2), Color.White);
+                    Monocle.Draw.Line(new Vector2(x + xInterval * i, y + h - yInterval * fitness + yBuffer), new Vector2(x + xInterval * (i+1), y + h - yInterval * fitness2 + yBuffer), Color.White);
                     Monocle.Draw.Line(new Vector2(x + xInterval * i, y + h + 3), new Vector2(x + xInterval * i, y + h - 3), Color.White);
                     ActiveFont.Draw(Convert.ToString(CelesteBotInteropModule.population.Gen - SavedBestFitnesses.Count + i), new Vector2(x + xInterval * i, y + h + 15), Vector2.Zero, new Vector2(0.4f, 0.4f), Color.White);
                 }
                 Monocle.Draw.Line(new Vector2(x + xInterval * (SavedBestFitnesses.Count - 1), y + h + 3), new Vector2(x + xInterval * (SavedBestFitnesses.Count - 1), y + h - 3), Color.White);
                 ActiveFont.Draw(Convert.ToString(CelesteBotInteropModule.population.Gen - 1), new Vector2(x + xInterval * (SavedBestFitnesses.Count - 1), y + h + 15), Vector2.Zero, new Vector2(0.4f, 0.4f), Color.White);
+                Monocle.Draw.Line(new Vector2(x - 3, y + yBuffer), new Vector2(x + 3, y + yBuffer), Color.White);
+            }
+        }
+
+        public static void DrawRewardGraph()
+        {
+            if (CelesteBotInteropModule.LearningStyle != LearningStyle.Q)
+            {
+                return;
+            }
+            int x = 500;
+            int y = 500;
+            int w = 600;
+            int h = 300;
+
+            float xInterval = w / CelesteBotInteropModule.Settings.FramesToSaveForRewardGraph;
+            double maxReward = 0;
+            foreach (double d in CelesteBotInteropModule.CurrentPlayer.Rewards)
+            {
+                if (d > maxReward)
+                {
+                    maxReward = d;
+                }
+            }
+            float yInterval = (float)(h / (maxReward));
+            float yBuffer = 10;
+
+            Monocle.Draw.Rect(x, y, w, h, Color.Black * 0.8f);
+
+            Monocle.Draw.Line(new Vector2(x, y), new Vector2(x, y + h), Color.White);
+            Monocle.Draw.Line(new Vector2(x, y + h), new Vector2(x + w, y + h), Color.White);
+
+            ActiveFont.Draw("Reward/Time", new Vector2(x + w / 2 - 100, y - 50), Vector2.Zero, new Vector2(0.4f, 0.4f), Color.White);
+            ActiveFont.Draw(String.Format("{0:0.000}", maxReward), new Vector2(x - 70, y + 10), Vector2.Zero, new Vector2(0.4f, 0.4f), Color.White);
+
+            if (CelesteBotInteropModule.CurrentPlayer.Rewards.Count >= 2)
+            {
+                for (int i = 0; i < CelesteBotInteropModule.CurrentPlayer.Rewards.Count - 1; i++)
+                {
+                    double reward1 = CelesteBotInteropModule.CurrentPlayer.Rewards[i];
+                    double reward2 = CelesteBotInteropModule.CurrentPlayer.Rewards[i + 1];
+                    Monocle.Draw.Line(new Vector2(x + xInterval * i, (float)(y + h - yInterval * reward1 + yBuffer)), new Vector2(x + xInterval * (i + 1), (float)(y + h - yInterval * reward2 + yBuffer)), Color.White);
+                    Monocle.Draw.Line(new Vector2(x + xInterval * i, y + h + 3), new Vector2(x + xInterval * i, y + h - 3), Color.White);
+                    ActiveFont.Draw(i.ToString(), new Vector2(x + xInterval * i, y + h + 15), Vector2.Zero, new Vector2(0.4f, 0.4f), Color.White);
+                }
+                Monocle.Draw.Line(new Vector2(x + xInterval * (CelesteBotInteropModule.CurrentPlayer.Rewards.Count - 1), y + h + 3), new Vector2(x + xInterval * (CelesteBotInteropModule.CurrentPlayer.Rewards.Count - 1), y + h - 3), Color.White);
+                ActiveFont.Draw((CelesteBotInteropModule.CurrentPlayer.Rewards.Count - 1).ToString(), new Vector2(x + xInterval * (CelesteBotInteropModule.CurrentPlayer.Rewards.Count - 1), y + h + 15), Vector2.Zero, new Vector2(0.4f, 0.4f), Color.White);
+                Monocle.Draw.Line(new Vector2(x - 3, y + yBuffer), new Vector2(x + 3, y + yBuffer), Color.White);
             }
         }
 
