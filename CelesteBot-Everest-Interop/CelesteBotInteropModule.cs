@@ -329,7 +329,8 @@ namespace CelesteBot_Everest_Interop
             {
                 if (IsKeyDown(Keys.S) && IsKeyDown(Keys.LeftShift))
                 {
-                    QTable.SaveTable(CelesteBotManager.qTable, CelesteBotManager.QTableSavePath);
+                    QTable.SerializeTable(CelesteBotManager.qTable, CelesteBotManager.QTableSavePath);
+                    Logger.Log(ModLogKey, "Saved QTable to: " + CelesteBotManager.QTableSavePath);
                 }
             }
             if (IsKeyDown(Keys.OemBackslash))
@@ -353,7 +354,7 @@ namespace CelesteBot_Everest_Interop
                 } else if (LearningStyle == LearningStyle.Q)
                 {
                     state = State.Disabled;
-                    CelesteBotManager.qTable = QTable.Load(CelesteBotManager.QTableSavePath);
+                    CelesteBotManager.qTable = QTable.SerializeLoad(CelesteBotManager.QTableSavePath);
                     Logger.Log(ModLogKey, "Loaded QTable from: " + CelesteBotManager.QTableSavePath);
                     Reset(temp);
                     original();

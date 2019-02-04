@@ -345,7 +345,8 @@ namespace CelesteBot_Everest_Interop
                 //Fitness = (((MaxPlayerPos - startPos).Length())/* + AverageSpeed / 10000 + 110 / AverageStamina*/);
                 // Need to keep track of the times that I have entered a certain screen. Can really take care of this at a later time tho.
                 UpdateTarget();
-                Fitness = 1000.0f/(player.BottomCenter - Target).LengthSquared() + TargetsPassed * CelesteBotInteropModule.Settings.TargetReachedRewardFitness;
+                //Fitness = 1000.0f/(player.BottomCenter - Target).LengthSquared() + TargetsPassed * CelesteBotInteropModule.Settings.TargetReachedRewardFitness;
+                Fitness = 1000.0f / (MaxPlayerPos - Target).LengthSquared() + TargetsPassed * CelesteBotInteropModule.Settings.TargetReachedRewardFitness;
                 // Could also create a fitness hash, using Levels as keys, and create Vector2's representing goal fitness locations
             }
             // MODIFY!

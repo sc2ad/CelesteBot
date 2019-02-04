@@ -183,14 +183,7 @@ namespace CelesteBot_Everest_Interop
             
             if (qTable != null)
             {
-                if (!qTable.ContainsState(LastQState))
-                {
-                    qTable.Add(current, action, 0);
-                }
-                else
-                {
-                    qTable.Update(LastQState, LastQAction, QFunction(qTable, LastQState, current, LastQAction, LastQReward));
-                }
+                qTable.Update(LastQState, LastQAction, QFunction(qTable, LastQState, current, LastQAction, LastQReward));
             }
             LastQState = current;
             LastQAction = action;

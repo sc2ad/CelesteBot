@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 namespace CelesteBot_Everest_Interop
 {
+    [Serializable]
     /// <summary>
     /// This class is used to represent various states of the player/game.
     /// These QStates can be added/updated in the QTable in order to create a functioning Q-Learning AI.
@@ -24,6 +25,10 @@ namespace CelesteBot_Everest_Interop
             player.Vision.CopyTo(Vision, 0);
             Vision = Vision.Take(CelesteBotManager.VISION_2D_X_SIZE * CelesteBotManager.VISION_2D_Y_SIZE).ToArray();
             //Vision = player.Vision;
+        }
+        private QState(float[] Vision)
+        {
+            this.Vision = Vision;
         }
         // Compares their visions
         public bool EqualsState(QState st)
@@ -52,13 +57,23 @@ namespace CelesteBot_Everest_Interop
         {
             string s = "";
             //s += player;
-            s += "Vision: [";
+            s += "[";
             foreach (float f in Vision)
             {
-                s += f + ", ";
+                s += f + ",";
             }
             s += "]";
             return s;
+        }
+        public static QState FromString(string str)
+        {
+            string[] floats = str.Split('[')[1].Split(']')[0].Split(',');
+            float[] f = new float[floats.Length];
+            for (int i = 0; i < floats.Length; i++)
+            {
+                f[i] = (float)Convert.ToDouble(floats[i]);
+            }
+            return new QState(f);
         }
     }
 }

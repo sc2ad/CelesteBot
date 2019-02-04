@@ -26,6 +26,8 @@ namespace CelesteBot_Everest_Interop
         private static List<InputData> actionIndexList;
 
         private Dictionary<QState, double[]> dynamicTable;
+        private QState CurrentState;
+        private QState CurrentStartState;
 
         public QTable()
         {
@@ -104,11 +106,17 @@ namespace CelesteBot_Everest_Interop
         {
             if (dynamicTable != null)
             {
+                if (CurrentStartState == state)
+                {
+                    return CurrentState;
+                }
                 foreach (QState s in dynamicTable.Keys)
                 {
                     if (s.EqualsState(state))
                     {
                         //Logger.Log(CelesteBotInteropModule.ModLogKey, "s: " + s + " = " + state);
+                        CurrentState = s;
+                        CurrentStartState = state;
                         return s;
                     }
                 }
@@ -220,7 +228,12 @@ namespace CelesteBot_Everest_Interop
             {
                 // This is the last element of the list.
                 // Iterate each option, and add each to the Dictionary.
-                for (int option = -1; option <= 1; option++)
+                int start = -1;
+                if (index > 1)
+                {
+                    start = 0;
+                }
+                for (int option = start; option <= 1; option++)
                 {
                     arr[index] = option;
                     actionIndexList.Add(new InputData(arr));
@@ -228,14 +241,19 @@ namespace CelesteBot_Everest_Interop
             }
             else
             {
-                for (int option = -1; option <= 1; option++)
+                int start = -1;
+                if (index > 1)
+                {
+                    start = 0;
+                }
+                for (int option = start; option <= 1; option++)
                 {
                     arr[index] = option;
                     CalculatePossibleActions(arr, index + 1);
                 }
             }
         }
-        public static void SaveTable(QTable table, string fileName)
+        public static void SerializeTable(QTable table, string fileName)
         {
             if (table == null) { return; }
 
@@ -254,11 +272,11 @@ namespace CelesteBot_Everest_Interop
                 Logger.Log(CelesteBotInteropModule.ModLogKey, ex.Message);
             }
         }
-        public static QTable Load(string fileName)
+        public static QTable SerializeLoad(string fileName)
         {
             if (string.IsNullOrEmpty(fileName)) { return default(QTable); }
 
-            QTable objectOut = default(QTable);
+            QTable objectOut = new QTable();
 
             try
             {
@@ -277,6 +295,68 @@ namespace CelesteBot_Everest_Interop
             }
 
             return objectOut;
+        }
+        public static void SaveTable(QTable table, string fileName)
+        {
+            if (table == null) { return; }
+
+            try
+            {
+                List<string> s = new List<string>();
+                foreach (QState q in table.dynamicTable.Keys)
+                {
+                    string z = q.ToString() + ":[";
+                    foreach (double d in table.dynamicTable[q])
+                    {
+                        z += d + ",";
+                    }
+                    z += "]";
+                    s.Add(z);
+                }
+                File.WriteAllLines(fileName, s.ToArray());
+            } catch (Exception ex)
+            {
+                Logger.Log(CelesteBotInteropModule.ModLogKey, "An exception happened when attempting to save the QTable!");
+                Logger.Log(CelesteBotInteropModule.ModLogKey, ex.Message);
+            }
+        }
+        public static QTable LoadTable(string fileName)
+        {
+            if (string.IsNullOrEmpty(fileName)) { return default(QTable); }
+
+            try
+            {
+                string[] s = File.ReadAllLines(fileName);
+                QTable table = new QTable();
+
+                foreach (string line in s)
+                {
+                    if (!line.Contains(":"))
+                    {
+                        // MALFORMATTED FILE
+                        Logger.Log(CelesteBotInteropModule.ModLogKey, "Malformatted file line: " + line);
+                        return default(QTable);
+                    }
+                    string[] spl = line.Split(':');
+                    QState state = QState.FromString(spl[0]);
+
+                    string[] doubles = spl[1].Split('[')[1].Split(']')[0].Split(',');
+                    double[] d = new double[doubles.Length];
+
+                    for (int i = 0; i < d.Length; i++)
+                    {
+                        d[i] = Convert.ToDouble(doubles[i]);
+                    }
+                    table.dynamicTable.Add(state, d);
+                }
+                return table;
+            }
+            catch (Exception ex)
+            {
+                Logger.Log(CelesteBotInteropModule.ModLogKey, "An exception happened when attempting to save the QTable!");
+                Logger.Log(CelesteBotInteropModule.ModLogKey, ex.Message);
+            }
+            return default(QTable);
         }
     }
 }
