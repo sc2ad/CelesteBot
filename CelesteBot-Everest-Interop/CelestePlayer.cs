@@ -19,6 +19,7 @@ namespace CelesteBot_Everest_Interop
         Vector2 startPos = new Vector2(0,0);
 
         public float Fitness = -1;
+        public double LastPlayerPosition = 0;
         private float AverageSpeed = 0;
         private float AverageStamina = 110;
         public float UnadjustedFitness;
@@ -125,7 +126,6 @@ namespace CelesteBot_Everest_Interop
             {
                 MaxPlayerPos = player.BottomCenter;
             }
-            
             //LastPlayerPos = player.BottomCenter;
         }
         public void SetupVision()
@@ -270,17 +270,16 @@ namespace CelesteBot_Everest_Interop
             }
             //CalculateFitness();
             // DONT USE FITNESS, USE PLAYER POSITION INSTEAD OF MAX POSITION
-            double quasiFitness = 1000.0f / (player.BottomCenter - Target).LengthSquared() + TargetsPassed * CelesteBotInteropModule.Settings.TargetReachedRewardFitness;
-            double reward = quasiFitness * 10;
+            double quasiFitness = (player.BottomCenter - Target).Length();
+            //double reward = quasiFitness * 10;
+            if (LastPlayerPosition == 0)
+            {
+                LastPlayerPosition = quasiFitness;
+            }
+            double reward = -(quasiFitness - LastPlayerPosition) / (1.0 / 60.0) * 10;
+            LastPlayerPosition = quasiFitness;
+            
             // Maybe change reward to be dFitness/dt?
-            if (reward >= -100)
-            {
-                Rewards.Add(reward);
-            }
-            if (Rewards.Count > CelesteBotInteropModule.Settings.FramesToSaveForRewardGraph)
-            {
-                Rewards.RemoveAt(0);
-            }
             return reward;
         }
         // Clones CelestePlayer

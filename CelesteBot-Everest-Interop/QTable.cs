@@ -75,12 +75,13 @@ namespace CelesteBot_Everest_Interop
         {
             if (dynamicTable != null)
             {
-                double[] temp = new double[actions];
-                temp[actionIndexTaken] = value;
+                //double[] temp = new double[actions];
                 //Logger.Log(CelesteBotInteropModule.ModLogKey, "Updating State: " + state);
                 QState s = GetStateInTable(state);
                 if (s != null)
                 {
+                    double[] temp = dynamicTable[s];
+                    temp[actionIndexTaken] = value;
                     Logger.Log(CelesteBotInteropModule.ModLogKey, "State already exists!");
                     dynamicTable[s] = temp;
                 } else

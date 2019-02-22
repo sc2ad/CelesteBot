@@ -56,7 +56,7 @@ namespace CelesteBot_Everest_Interop
         public int QLearningRate { get; set; } = 80;
         [SettingRange(1, 100)]
         public int QGamma { get; set; } = 95;
-        [SettingRange(1, 100)]
+        [SettingRange(0, 100)]
         public int MinQEpsilon { get; set; } = 10;
         [SettingRange(1, 100)]
         public int MaxQEpsilon { get; set; } = 100;

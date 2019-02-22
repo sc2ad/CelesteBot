@@ -57,6 +57,8 @@ namespace CelesteBot_Everest_Interop
         public static InputData LastQAction;
         public static double LastQReward;
         public static int QIterations = 0;
+        public static double MaxQReward = 0;
+        public static int QMaxRewardIteration = 0;
 
         // Q Learning Settings
         public static double QLearningRate { get { return CelesteBotInteropModule.Settings.QLearningRate / 100.0; } set { } }
@@ -156,14 +158,20 @@ namespace CelesteBot_Everest_Interop
         public static void UpdateQTable()
         {
             QEpsilon = CelesteBotInteropModule.Settings.MinQEpsilon / 100.0 + (CelesteBotInteropModule.Settings.MaxQEpsilon / 100.0 - CelesteBotInteropModule.Settings.MinQEpsilon / 100.0) * Math.Exp(-CelesteBotInteropModule.Settings.QEpsilonDecay / 10000.0 * QIterations);
-            if (QIterations % QGraphIterations == 0)
+            // Reuses Generations/Fitness for the Graph
+            // Hacky
+            if (CelesteBotInteropModule.CurrentPlayer.Fitness > CelesteBotInteropModule.population.BestFitness)
             {
-                // Reuses Generations/Fitness for the Graph
+                CelesteBotInteropModule.population.BestFitness = CelesteBotInteropModule.CurrentPlayer.Fitness;
+                CelesteBotInteropModule.population.Gen = QIterations;
+            }
+            if (CelesteBotInteropModule.CurrentPlayer.Fitness > 0)
+            {
                 SavedBestFitnesses.Add(CelesteBotInteropModule.CurrentPlayer.Fitness);
-                if (SavedBestFitnesses.Count > CelesteBotInteropModule.Settings.GenerationsToSaveForGraph)
-                {
-                    SavedBestFitnesses.RemoveAt(0);
-                }
+            }
+            if (SavedBestFitnesses.Count > CelesteBotInteropModule.Settings.FramesToSaveForRewardGraph)
+            {
+                SavedBestFitnesses.RemoveAt(0);
             }
             // What is the current state?
             QState current = new QState(CelesteBotInteropModule.CurrentPlayer);
@@ -188,6 +196,19 @@ namespace CelesteBot_Everest_Interop
             if (qTable != null)
             {
                 qTable.Update(LastQState, LastQAction, QFunction(qTable, LastQState, current, LastQAction, LastQReward));
+            }
+            if (reward > -10000)
+            {
+                CelesteBotInteropModule.CurrentPlayer.Rewards.Add(reward);
+            }
+            if (CelesteBotInteropModule.CurrentPlayer.Rewards.Count > CelesteBotInteropModule.Settings.FramesToSaveForRewardGraph)
+            {
+                CelesteBotInteropModule.CurrentPlayer.Rewards.RemoveAt(0);
+            }
+            if (reward > MaxQReward)
+            {
+                MaxQReward = reward;
+                QMaxRewardIteration = QIterations;
             }
             LastQState = current;
             LastQAction = action;
@@ -288,6 +309,11 @@ namespace CelesteBot_Everest_Interop
                 double dy = h / (double)(OUTPUTS + 1);
 
                 InputData data = CelesteBotInteropModule.inputPlayer.Data;
+
+                if (data == QTable.GetAction(qTable.GetMaxActionIndex(LastQState)))
+                {
+                    ActiveFont.Draw("Not Guessing!\nReward: " + String.Format("{0:0.000}", qTable.GetMax(LastQState)), new Vector2(x + w / 2 - 60, y + 30), Vector2.Zero, new Vector2(0.4f, 0.4f), Color.White);
+                }
 
                 for (int i = 0; i < OUTPUTS; i++)
                 {
@@ -595,6 +621,10 @@ namespace CelesteBot_Everest_Interop
             int h = 300;
             
             float xInterval = w / CelesteBotInteropModule.Settings.GenerationsToSaveForGraph;
+            if (CelesteBotInteropModule.LearningStyle == LearningStyle.Q)
+            {
+                xInterval = w / CelesteBotInteropModule.Settings.FramesToSaveForRewardGraph;
+            }
             float maxFitness = 0;
             foreach (float i in SavedBestFitnesses)
             {
@@ -602,6 +632,10 @@ namespace CelesteBot_Everest_Interop
                 {
                     maxFitness = i;
                 }
+            }
+            if (CelesteBotInteropModule.LearningStyle == LearningStyle.Q)
+            {
+                maxFitness = CelesteBotInteropModule.population.BestFitness;
             }
             float yInterval = (float)(h / (maxFitness));
             float yBuffer = 10;
@@ -612,16 +646,19 @@ namespace CelesteBot_Everest_Interop
             Monocle.Draw.Line(new Vector2(x, y + h), new Vector2(x + w, y + h), Color.White);
 
             ActiveFont.Draw("Fitness/Time", new Vector2(x + w / 2 - 100, y - 50), Vector2.Zero, new Vector2(0.4f, 0.4f), Color.White);
-            ActiveFont.Draw(String.Format("{0:0.000}", maxFitness), new Vector2(x - 70, y + 10), Vector2.Zero, new Vector2(0.4f, 0.4f), Color.White);
+            ActiveFont.Draw(String.Format("{0:0.0000}", maxFitness), new Vector2(x - 75, y + 10), Vector2.Zero, new Vector2(0.4f, 0.4f), Color.White);
             if (SavedBestFitnesses.Count >= 2)
             {
-                for (int i = 0; i < SavedBestFitnesses.Count-1; i++)
+                for (int i = 0; i < SavedBestFitnesses.Count - 1; i++)
                 {
                     float fitness = (float)SavedBestFitnesses[i];
                     float fitness2 = (float)SavedBestFitnesses[i + 1];
-                    Monocle.Draw.Line(new Vector2(x + xInterval * i, y + h - yInterval * fitness + yBuffer), new Vector2(x + xInterval * (i+1), y + h - yInterval * fitness2 + yBuffer), Color.White);
+                    Monocle.Draw.Line(new Vector2(x + xInterval * i, y + h - yInterval * fitness + yBuffer), new Vector2(x + xInterval * (i + 1), y + h - yInterval * fitness2 + yBuffer), Color.White);
                     Monocle.Draw.Line(new Vector2(x + xInterval * i, y + h + 3), new Vector2(x + xInterval * i, y + h - 3), Color.White);
-                    ActiveFont.Draw(Convert.ToString(CelesteBotInteropModule.population.Gen - SavedBestFitnesses.Count + i), new Vector2(x + xInterval * i, y + h + 15), Vector2.Zero, new Vector2(0.4f, 0.4f), Color.White);
+                    if (CelesteBotInteropModule.LearningStyle == LearningStyle.NEAT)
+                    {
+                        ActiveFont.Draw(Convert.ToString(CelesteBotInteropModule.population.Gen - SavedBestFitnesses.Count + i), new Vector2(x + xInterval * i, y + h + 15), Vector2.Zero, new Vector2(0.4f, 0.4f), Color.White);
+                    }
                 }
                 Monocle.Draw.Line(new Vector2(x + xInterval * (SavedBestFitnesses.Count - 1), y + h + 3), new Vector2(x + xInterval * (SavedBestFitnesses.Count - 1), y + h - 3), Color.White);
                 ActiveFont.Draw(Convert.ToString(CelesteBotInteropModule.population.Gen - 1), new Vector2(x + xInterval * (SavedBestFitnesses.Count - 1), y + h + 15), Vector2.Zero, new Vector2(0.4f, 0.4f), Color.White);
@@ -641,14 +678,7 @@ namespace CelesteBot_Everest_Interop
             int h = 300;
 
             float xInterval = w / CelesteBotInteropModule.Settings.FramesToSaveForRewardGraph;
-            double maxReward = 0;
-            foreach (double d in CelesteBotInteropModule.CurrentPlayer.Rewards)
-            {
-                if (d > maxReward)
-                {
-                    maxReward = d;
-                }
-            }
+            double maxReward = MaxQReward;
             float yInterval = (float)(h / (maxReward));
             float yBuffer = 10;
 
@@ -658,7 +688,7 @@ namespace CelesteBot_Everest_Interop
             Monocle.Draw.Line(new Vector2(x, y + h), new Vector2(x + w, y + h), Color.White);
 
             ActiveFont.Draw("Reward/Time", new Vector2(x + w / 2 - 100, y - 50), Vector2.Zero, new Vector2(0.4f, 0.4f), Color.White);
-            ActiveFont.Draw(String.Format("{0:0.000}", maxReward), new Vector2(x - 70, y + 10), Vector2.Zero, new Vector2(0.4f, 0.4f), Color.White);
+            ActiveFont.Draw(String.Format("{0:0.000}", maxReward), new Vector2(x - 75, y + 10), Vector2.Zero, new Vector2(0.4f, 0.4f), Color.White);
 
             if (CelesteBotInteropModule.CurrentPlayer.Rewards.Count >= 2)
             {
@@ -668,10 +698,9 @@ namespace CelesteBot_Everest_Interop
                     double reward2 = CelesteBotInteropModule.CurrentPlayer.Rewards[i + 1];
                     Monocle.Draw.Line(new Vector2(x + xInterval * i, (float)(y + h - yInterval * reward1 + yBuffer)), new Vector2(x + xInterval * (i + 1), (float)(y + h - yInterval * reward2 + yBuffer)), Color.White);
                     Monocle.Draw.Line(new Vector2(x + xInterval * i, y + h + 3), new Vector2(x + xInterval * i, y + h - 3), Color.White);
-                    ActiveFont.Draw(i.ToString(), new Vector2(x + xInterval * i, y + h + 15), Vector2.Zero, new Vector2(0.4f, 0.4f), Color.White);
                 }
                 Monocle.Draw.Line(new Vector2(x + xInterval * (CelesteBotInteropModule.CurrentPlayer.Rewards.Count - 1), y + h + 3), new Vector2(x + xInterval * (CelesteBotInteropModule.CurrentPlayer.Rewards.Count - 1), y + h - 3), Color.White);
-                ActiveFont.Draw((CelesteBotInteropModule.CurrentPlayer.Rewards.Count - 1).ToString(), new Vector2(x + xInterval * (CelesteBotInteropModule.CurrentPlayer.Rewards.Count - 1), y + h + 15), Vector2.Zero, new Vector2(0.4f, 0.4f), Color.White);
+                ActiveFont.Draw(Convert.ToString(CelesteBotInteropModule.CurrentPlayer.Rewards.Count - 1), new Vector2(x + xInterval * (CelesteBotInteropModule.CurrentPlayer.Rewards.Count - 1), y + h + 15), Vector2.Zero, new Vector2(0.4f, 0.4f), Color.White);
                 Monocle.Draw.Line(new Vector2(x - 3, y + yBuffer), new Vector2(x + 3, y + yBuffer), Color.White);
             }
         }
@@ -755,7 +784,7 @@ namespace CelesteBot_Everest_Interop
                 }
             } else if (CelesteBotInteropModule.LearningStyle == LearningStyle.Q)
             {
-                ActiveFont.Draw("QLearningRate: " + QLearningRate + " QGamma: " + QGamma + " QEpsilon: " + QEpsilon + " QIterations: " + QIterations, new Vector2(3, 0), Vector2.Zero, new Vector2(0.45f, 0.45f), Color.White);
+                ActiveFont.Draw("QLearningRate: " + QLearningRate + " QGamma: " + QGamma + " QEpsilon: " + QEpsilon + " QIterations: " + QIterations + " Max Reward At: " + QMaxRewardIteration, new Vector2(3, 0), Vector2.Zero, new Vector2(0.45f, 0.45f), Color.White);
             }
             ActiveFont.Draw("Selected Target: " + p.Target, new Vector2(3, 30), Vector2.Zero, new Vector2(0.45f, 0.45f), Color.White);
         }
@@ -772,7 +801,7 @@ namespace CelesteBot_Everest_Interop
                 ActiveFont.Draw("Best Fitness: " + CelesteBotInteropModule.population.BestFitness, new Vector2(3, 60), Vector2.Zero, new Vector2(0.45f, 0.45f), Color.White);
             } else if (CelesteBotInteropModule.LearningStyle == LearningStyle.Q)
             {
-                ActiveFont.Draw("Best Fitness: " + CelesteBotInteropModule.population.BestFitness + " QStateCount: " + qTable.GetStateCount() + " Actions: " + QTable.GetActionCount(), new Vector2(3, 60), Vector2.Zero, new Vector2(0.45f, 0.45f), Color.White);
+                ActiveFont.Draw("Best Fitness: " + CelesteBotInteropModule.population.BestFitness + " At: " + CelesteBotInteropModule.population.Gen + " QStateCount: " + qTable.GetStateCount() + " Actions: " + QTable.GetActionCount(), new Vector2(3, 60), Vector2.Zero, new Vector2(0.45f, 0.45f), Color.White);
             }
         }
         public static void DrawAppendMode()
