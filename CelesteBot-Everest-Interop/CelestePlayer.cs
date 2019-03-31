@@ -9,51 +9,89 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Runtime.Serialization;
 
 namespace CelesteBot_Everest_Interop
 {
+    [KnownType(typeof(CelestePlayer))]
+    [DataContract]
     public class CelestePlayer : IDisposable
     {
-        int[,] Vision2D = new int[CelesteBotManager.VISION_2D_X_SIZE, CelesteBotManager.VISION_2D_Y_SIZE];
+        [DataMember]
+        int[][] Vision2D = new int[CelesteBotManager.VISION_2D_X_SIZE][];
+        
         public Player player;
+        [DataMember]
         Vector2 startPos = new Vector2(0,0);
 
+        [DataMember]
         public float Fitness = -1;
+        [DataMember]
         public double LastPlayerPosition = 0;
+        [DataMember]
         private float AverageSpeed = 0;
+        [DataMember]
         private float AverageStamina = 110;
+        [DataMember]
         public float UnadjustedFitness;
+        [DataMember]
         public Genome Brain;
+        [DataMember]
         public ArrayList ReplayActions = new ArrayList();
+        [DataMember]
         public float[] Vision = new float[CelesteBotManager.INPUTS];
+        [DataMember]
         public float[] Actions = new float[CelesteBotManager.OUTPUTS];
+        [DataMember]
         public int Lifespan = 0;
+        [DataMember]
         public bool Dead = false;
+        [DataMember]
         public bool Replay = false;
+        [DataMember]
         public int Gen = 0;
+        [DataMember]
         private Stopwatch timer;
+        [DataMember]
         private Stopwatch deathTimer;
+        [DataMember]
         public string Name;
+        [DataMember]
         public string SpeciesName = "Not yet defined";
 
         // Target Fitness and stuff
+        [DataMember]
         public string FitnessPath = @"fitnesses.fit";
+        [DataMember]
         public Dictionary<string, List<Vector2>> positionFitnesses;
+        [DataMember]
         public Dictionary<string, List<Vector2>> velocityFitnesses;
 
+        [DataMember]
         public Vector2 Target = Vector2.Zero;
+        [DataMember]
         public int TargetsPassed = 0;
 
+        [DataMember]
         private List<Vector2>.Enumerator enumForFitness;
+        [DataMember]
         private List<string>.Enumerator enumForLevels;
 
+        [DataMember]
         private Vector2 MaxPlayerPos = new Vector2(-10000, -10000);
 
+        [DataMember]
         public bool VisionSetup = false;
+        [DataMember]
         public List<double> Rewards;
 
         public CelestePlayer()
         {
+            for (int i = 0; i < CelesteBotManager.VISION_2D_X_SIZE; i++)
+            {
+                Vision2D[i] = new int[CelesteBotManager.VISION_2D_Y_SIZE];
+            }
+
             Brain = new Genome(CelesteBotManager.INPUTS, CelesteBotManager.OUTPUTS);
             Name = CelesteBotManager.GetUniqueOrganismName();
             timer = new Stopwatch();
@@ -90,15 +128,16 @@ namespace CelesteBot_Everest_Interop
                 {
                     deathTimer.Start();
                 }
-                if (deathTimer.ElapsedMilliseconds > CelesteBotManager.PLAYER_DEATH_TIME_BEFORE_RESET * 1000)
+                if (deathTimer.ElapsedMilliseconds * CelesteBotInteropModule.FrameLoops > CelesteBotManager.PLAYER_DEATH_TIME_BEFORE_RESET * 1000)
                 {
                     Dead = true;
                 }
-                return;
+                //return;
             }
             UpdateVision();
             Look();
             Think();
+            CalculateFitness();
             /*need to incorporate y here, maybe dist to goal here as well*/
             // Compare to distance to fitness target
             if (player.Speed.Length() == 0 || (player.BottomCenter - Target).Length() >= (MaxPlayerPos - Target).Length() && !player.JustRespawned)
@@ -111,7 +150,7 @@ namespace CelesteBot_Everest_Interop
             {
                 timer.Reset(); // Resets TimeWhileStuck if it starts moving again!
             }
-            if (timer.ElapsedMilliseconds / 1000.0 > CelesteBotInteropModule.Settings.TimeStuckThreshold)
+            if (timer.ElapsedMilliseconds * CelesteBotInteropModule.FrameLoops > CelesteBotInteropModule.Settings.TimeStuckThreshold * 1000 && !player.Dead && !deathTimer.IsRunning)
             {
                 // Kill the player because it hasn't moved for awhile
                 Dead = true;
@@ -163,8 +202,14 @@ namespace CelesteBot_Everest_Interop
             //Logger.Log(CelesteBotInteropModule.ModLogKey, "Tile Under Player: (" + tileUnder.X + ", " + tileUnder.Y + ")");
             //Logger.Log(CelesteBotInteropModule.ModLogKey, "(X,Y) Under Player: (" + player.X + ", " + (player.Y + 4) + ")");
             // 1 = Air, 2 = Wall, 4 = Entity
-            int[,] outInts = new int[visionX, visionY];
+            int[][] outInts = new int[visionX][];
+            for (int i = 0; i < visionX; i++)
+            {
+                outInts[i] = new int[visionY];
+            }
             //MTexture[,] tiles = TileFinder.GetSplicedTileArray(visionX, visionY);
+            TileFinder.UpdateGrid();
+            TileFinder.CacheEntities();
             for (int i = 0; i < visionY; i++)
             {
                 for (int j = 0; j < visionX; j++)
@@ -176,7 +221,7 @@ namespace CelesteBot_Everest_Interop
                         //    Logger.Log(CelesteBotInteropModule.ModLogKey, TileFinder.tileArray[(int)(tileUnder.X - underXIndex + j), (int)(tileUnder.Y - underYIndex + i)].ToString());
                         //}
                     }
-                    int temp = TileFinder.IsSpikeAtTile(new Vector2(tileUnder.X - underXIndex + j, tileUnder.Y - underYIndex + i)) ? 8 : 1;
+                    /*int temp = TileFinder.IsSpikeAtTile(new Vector2(tileUnder.X - underXIndex + j, tileUnder.Y - underYIndex + i)) ? 8 : 1;
                     if (temp == 1)
                     {
                         temp = TileFinder.IsWallAtTile(new Vector2(tileUnder.X - underXIndex + j, tileUnder.Y - underYIndex + i)) ? 2 : 1;
@@ -184,8 +229,8 @@ namespace CelesteBot_Everest_Interop
                     if (temp == 1)
                     {
                         temp = TileFinder.IsEntityAtTile(new Vector2(tileUnder.X - underXIndex + j, tileUnder.Y - underYIndex + i)) ? 4 : 1;
-                    }
-                    outInts[j, i] = temp;
+                    }*/
+                    outInts[j][i] = (int)TileFinder.GetEntityAtTile(new Vector2(tileUnder.X - underXIndex + j, tileUnder.Y - underYIndex + i));
                 }
             }
             Vision2D = outInts;
@@ -214,7 +259,7 @@ namespace CelesteBot_Everest_Interop
             {
                 for (int j = 0; j < CelesteBotManager.VISION_2D_Y_SIZE; j++)
                 {
-                    Vision[i * CelesteBotManager.VISION_2D_Y_SIZE + j] = Vision2D[j, i];
+                    Vision[i * CelesteBotManager.VISION_2D_Y_SIZE + j] = Vision2D[j][i];
                 }
             }
             Vision[CelesteBotManager.VISION_2D_Y_SIZE * CelesteBotManager.VISION_2D_X_SIZE] = player.BottomCenter.X;
@@ -235,7 +280,14 @@ namespace CelesteBot_Everest_Interop
             //get the output of the neural network
             if (CelesteBotInteropModule.LearningStyle == LearningStyle.NEAT)
             {
-                Actions = Brain.FeedForward(Vision);
+                if(deathTimer.IsRunning)
+                {
+                    Actions = new float[] { 0, 0, 0, 0, 0, 0};
+                }
+                else
+                {
+                    Actions = Brain.FeedForward(Vision);
+                }
                 InputData inp = new InputData(Actions);
                 CelesteBotInteropModule.inputPlayer.UpdateData(inp); // Updates inputs to reflect neural network results
             } else if (CelesteBotInteropModule.LearningStyle == LearningStyle.Q)
@@ -363,7 +415,7 @@ namespace CelesteBot_Everest_Interop
                 // Need to keep track of the times that I have entered a certain screen. Can really take care of this at a later time tho.
                 UpdateTarget();
                 //Fitness = 1000.0f/(player.BottomCenter - Target).LengthSquared() + TargetsPassed * CelesteBotInteropModule.Settings.TargetReachedRewardFitness;
-                Fitness = 1000.0f / (MaxPlayerPos - Target).LengthSquared() + TargetsPassed * CelesteBotInteropModule.Settings.TargetReachedRewardFitness;
+                Fitness = 1000.0f / ((MaxPlayerPos - Target).LengthSquared() + 1) + TargetsPassed * CelesteBotInteropModule.Settings.TargetReachedRewardFitness;
                 // Could also create a fitness hash, using Levels as keys, and create Vector2's representing goal fitness locations
             }
             // MODIFY!

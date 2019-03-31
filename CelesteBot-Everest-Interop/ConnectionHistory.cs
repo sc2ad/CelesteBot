@@ -4,19 +4,27 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Runtime.Serialization;
 
 namespace CelesteBot_Everest_Interop
 {
+    [KnownType(typeof(ConnectionHistory))]
+    [DataContract]
     public class ConnectionHistory
     {
+        [DataMember]
         public static int NextConnectionInnovationNumber = 100;
 
+        [DataMember]
         public int FromNode; // Start
+        [DataMember]
         public int ToNode; // Finish
+        [DataMember]
         public int InnovationNumber; // Original innovation number
 
         // This array is _essentially_ a Genome copy.
         // It stores all of the innovation numbers of the Genome for when the mutation first occurred.
+        [DataMember]
         ArrayList originalGenomeCopy = new ArrayList();
         //the innovation Numbers from the connections of the genome which first had this mutation 
         //this represents the genome and allows us to test if another genome is the same

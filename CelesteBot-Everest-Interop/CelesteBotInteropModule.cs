@@ -47,7 +47,7 @@ namespace CelesteBot_Everest_Interop
         public static bool ShowNothing = false;
 
         // Learning
-        public static LearningStyle LearningStyle = LearningStyle.Q;
+        public static LearningStyle LearningStyle = LearningStyle.NEAT;
 
         public static bool ShowBest = false;
         public static bool RunBest = false;
@@ -55,10 +55,11 @@ namespace CelesteBot_Everest_Interop
         public static int UpToSpecies = 0;
         public static bool ShowBestEachGen = false;
         public static int UpToGen = 0;
+        public static int FrameLoops = 1;
 
         public static CelestePlayer SpeciesChamp;
         public static CelestePlayer GenPlayerTemp;
-
+        
         private static int TalkCount = 0; // Counts how many times we attempted to talk to something
         private static int TalkMaxAttempts = 30; // How many attempts until we give up attempting to talk to something
         private static int MaxTimeSinceLastTalk = 100; // Number of skipped frames when we can talk if we have recently talked to something
@@ -391,6 +392,14 @@ namespace CelesteBot_Everest_Interop
             {
                 ShowNothing = true;
             }
+            else if (IsKeyDown(Keys.F) && IsKeyDown(Keys.LeftShift))
+            {
+                FrameLoops = 1;
+            }
+            else if (IsKeyDown(Keys.F))
+            {
+                FrameLoops = 4;
+            }
             if (state == State.Running)
             {
                 if (buffer > 0)
@@ -591,7 +600,11 @@ namespace CelesteBot_Everest_Interop
             //{
             //    // Player has not been setup yet
             //}
-            original(self, gameTime);
+            
+            for (int i = 0; i < FrameLoops; i++)
+            {
+                original(self, gameTime);
+            }
         }
         public static void OnScene_Transition(On.Celeste.Celeste.orig_OnSceneTransition original, Celeste.Celeste self, Scene last, Scene next)
         {

@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Serialization;
+using System.Runtime.Serialization.Json;
 
 namespace CelesteBot_Everest_Interop
 {
@@ -26,15 +27,17 @@ namespace CelesteBot_Everest_Interop
             {
                 using (Stream stream = File.Create(fileName))
                 {
-                    IFormatter formatter = new BinaryFormatter();
-                    formatter.Serialize(stream, pop);
+                    DataContractSerializerSettings settings = new DataContractSerializerSettings();
+                    settings.KnownTypes = new List<Type> { typeof(CelestePlayer), typeof(ConnectionHistory), typeof(GeneConnection), typeof(Genome), typeof(Node), typeof(Population), typeof(Species) };
+                    DataContractSerializer serializer = new DataContractSerializer(typeof(Population), settings);
+                    serializer.WriteObject(stream, pop);
                     stream.Close();
                 }
             }
             catch (Exception ex)
             {
                 Logger.Log(CelesteBotInteropModule.ModLogKey, "An exception happened when attempting to save a checkpoint!");
-                Logger.Log(CelesteBotInteropModule.ModLogKey, ex.Message);
+                Logger.Log(CelesteBotInteropModule.ModLogKey, ex.ToString());
             }
         }
         public static Population DeSerializeObject(string fileName)
@@ -47,16 +50,18 @@ namespace CelesteBot_Everest_Interop
             {
                 using (Stream stream = File.OpenRead(fileName))
                 {
-                    IFormatter formatter = new BinaryFormatter();
+                    DataContractSerializerSettings settings = new DataContractSerializerSettings();
+                    settings.KnownTypes = new List<Type> { typeof(CelestePlayer), typeof(ConnectionHistory), typeof(GeneConnection), typeof(Genome), typeof(Node), typeof(Population), typeof(Species) };
+                    DataContractSerializer serializer = new DataContractSerializer(typeof(Population), settings);
                     stream.Position = 0;
-                    objectOut = (Population)formatter.Deserialize(stream);
+                    objectOut = (Population)serializer.ReadObject(stream);
                     stream.Close();
                 }
             }
             catch (Exception ex)
             {
                 Logger.Log(CelesteBotInteropModule.ModLogKey, "An exception happened when attempting to load a checkpoint!");
-                Logger.Log(CelesteBotInteropModule.ModLogKey, ex.Message);
+                Logger.Log(CelesteBotInteropModule.ModLogKey, ex.ToString());
             }
 
             return objectOut;

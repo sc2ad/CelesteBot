@@ -5,23 +5,36 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Runtime.Serialization;
 
 namespace CelesteBot_Everest_Interop
 {
     // This class represents a Species of Genomes (Genomes that are comparable to each other)
+    [KnownType(typeof(Species))]
+    [DataContract]
     public class Species
     {
+        [DataMember]
         public ArrayList Players = new ArrayList();
+        [DataMember]
         public float BestFitness = 0;
+        [DataMember]
         public String Name;
+        [DataMember]
         public CelestePlayer Champ;
+        [DataMember]
         public float AverageFitness = 0;
+        [DataMember]
         public int Staleness = 0;//how many generations the species has gone without an improvement
+        [DataMember]
         public Genome Rep;
 
         // Coefficients for testing compatibility 
+        [DataMember]
         float excessCoeff = 1;
+        [DataMember]
         float weightDiffCoeff = 0.5f;
+        [DataMember]
         float compatibilityThreshold = 3;
 
 

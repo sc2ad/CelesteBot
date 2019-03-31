@@ -5,20 +5,30 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Runtime.Serialization;
 
 namespace CelesteBot_Everest_Interop
 {
     // This class represents a Node (or a neuron)
+    [KnownType(typeof(Node))]
+    [DataContract(IsReference = true)]
     public class Node
     {
+        [DataMember]
         public int Id; // The ID of the Node (neuron), which is ALWAYS unique
+        [DataMember]
         public float InputSum = 0; // rewriten by all Nodes (neurons) that have this node (neuron) as an output. This is before activation.
+        [DataMember]
         public float OutputValue = 0; // Output value to send to all Output Nodes (neurons)
+        [DataMember]
         public ArrayList OutputConnections = new ArrayList(); // All of the outputs of this Node (neuron)
+        [DataMember]
         public int Layer = 0; // Where is the Node (neuron)? Layer 0 = input, Layer LAST = output
+        [DataMember]
         public Vector2 DrawPos = new Vector2(); // For drawing (Genome)
+        [DataMember]
         public int DrawRadius = 0;
-
+        
         public Node(int no)
         {
             // Only ID is set on construction, everything else is mutated externally as Genome sees fit
