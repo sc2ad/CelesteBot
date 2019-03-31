@@ -3,19 +3,26 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Runtime.Serialization;
 
 namespace CelesteBot_Everest_Interop
 {
     // This class represents a Connection between two Nodes (refered to as a Gene)
     // This is essentially a weight.
+    [DataContract]
     public class GeneConnection
     {
+        [DataMember]
         public Node FromNode;
+        [DataMember]
         public Node ToNode;
+        [DataMember]
         public float Weight;
+        [DataMember]
         public bool Enabled = true;
+        [DataMember]
         public int InnovationNo; // This is essentially an ID to compare various Genomes, it is used to compare similarities and differences between Genomes.
-
+        
         public GeneConnection(Node from, Node to, float w, int inno)
         {
             FromNode = from;

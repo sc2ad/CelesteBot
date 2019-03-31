@@ -5,25 +5,36 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Runtime.Serialization;
 
 namespace CelesteBot_Everest_Interop
 {
     // This class represents ALL of the Players that will be evolved.
     // It serves as a 'holder' for all of the Players of each generation and is also responsible for evolving them+showing+updating them
-    [Serializable]
+    [DataContract]
     public class Population
     {
+        [DataMember]
         public ArrayList Pop = new ArrayList();
+        [DataMember]
         public CelestePlayer BestPlayer;// The best player in the population 
+        [DataMember]
         public float BestFitness = 0;// The score of the best ever player
+        [DataMember]
         public int Gen;
+        [DataMember]
         public ArrayList InnovationHistory = new ArrayList();
+        [DataMember]
         public ArrayList GenPlayers = new ArrayList();
+        [DataMember]
         public ArrayList Species = new ArrayList();
 
+        [DataMember]
         bool massExtinctionEvent = false;
+        [DataMember]
         bool newStage = false;
 
+        [DataMember]
         public int CurrentIndex = 0;
 
         public Population(int size)

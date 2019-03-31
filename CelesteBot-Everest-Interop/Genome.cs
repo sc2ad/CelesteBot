@@ -6,24 +6,41 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Collections;
 using Celeste.Mod;
+using System.Xml.Serialization;
+using System.Runtime.Serialization;
 
 namespace CelesteBot_Everest_Interop
 {
     // The Genome (Brain) for each Player.
     // This acts as the network, as well as contains various helper genetic functions.
+    [KnownType(typeof(GeneConnection))]
+    [DataContract]
     public class Genome
     {
+        [DataMember]
         public ArrayList Genes = new ArrayList(); // All of the connections between Nodes
+        [DataMember]
         public ArrayList Nodes = new ArrayList(); // All of the Nodes, in no particular order
+        [DataMember]
         public int Inputs;
+        [DataMember]
         public int Outputs;
+        [DataMember]
         public int Layers = 2; // Default 2, increases as evolution occurs
+        [DataMember]
         public int NextNode = 0; // The next Node ID to modify
+        [DataMember]
         public int BiasNode; // The Node ID that represents the bias Node
+        [DataMember]
         private Node bNode;
 
+        [DataMember]
         public ArrayList network = new ArrayList();//a list of the nodes in the order that they need to be considered in the NN
 
+        public Genome()
+        {
+
+        }
         public Genome(int inp, int outp)
         {
             // Set input number and output number

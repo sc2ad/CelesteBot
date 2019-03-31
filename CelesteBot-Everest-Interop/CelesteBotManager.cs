@@ -40,7 +40,7 @@ namespace CelesteBot_Everest_Interop
         //public static int POPULATION_SIZE = 50;
 
         public static int PLAYER_GRACE_BUFFER = 160; // How long between restarts should the next player be created, some arbitrary number of frames
-        public static double PLAYER_DEATH_TIME_BEFORE_RESET = 2.5; // How many seconds after a player dies should the next player be created and the last one deleted
+        public static double PLAYER_DEATH_TIME_BEFORE_RESET = 4; // How many seconds after a player dies should the next player be created and the last one deleted
 
         // Paths/Prefixes
         public static string ORGANISM_PATH = @"organismNames.txt";
@@ -97,7 +97,7 @@ namespace CelesteBot_Everest_Interop
             //POPULATION_SIZE = 50;
 
             PLAYER_GRACE_BUFFER = 160; // How long between restarts should the next player be created, some arbitrary number of frames
-            PLAYER_DEATH_TIME_BEFORE_RESET = 2.5; // How many seconds after a player dies should the next player be created and the last one deleted
+            PLAYER_DEATH_TIME_BEFORE_RESET = 4; // How many seconds after a player dies should the next player be created and the last one deleted
     }
 
         public static void Draw()
@@ -411,6 +411,7 @@ namespace CelesteBot_Everest_Interop
 
                             renderPos -= TileFinder.GetCelesteLevel().Camera.Position;
                             renderPos *= 6f;
+
                             double tileWidth = 48;
                             double tileHeight = 48;
 
@@ -602,7 +603,8 @@ namespace CelesteBot_Everest_Interop
                     {
                         thickness = 6;
                     }
-                    Monocle.Draw.Circle(n.DrawPos, n.DrawRadius, color, thickness, 100);
+                    //Monocle.Draw.Circle(n.DrawPos, n.DrawRadius, color, thickness, 100);
+                    Monocle.Draw.Rect(n.DrawPos.X, n.DrawPos.Y, n.DrawRadius, n.DrawRadius, color);
                     //ActiveFont.Draw(Convert.ToString(n.Id), new Vector2(n.DrawPos.X - TEXT_OFFSET.X, n.DrawPos.Y - TEXT_OFFSET.Y), Vector2.Zero, NODE_LABEL_SCALE, color);
                     if (Labels.ContainsKey(n.Id))
                     {
