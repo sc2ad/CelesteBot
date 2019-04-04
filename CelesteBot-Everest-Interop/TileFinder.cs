@@ -15,8 +15,19 @@ namespace CelesteBot_Everest_Interop
         Unset = 0,
         Air = 1,
         Tile = 2,
-        Other = 4,
-        Spike = 8,
+        Other = 3,
+        IntroCrusher = 4,
+        JumpthruPlatform = 5,
+        Spring = 6,
+        Strawberry = 7,
+        Spikes = 8,
+        ZipMover = 9,
+        CrumblePlatform = 10,
+        DashBlock = 11,
+        FakeWall = 12,
+        Refill = 13,
+        ChangeRespawnTrigger = 14,
+        FallingBlock = 15,
     }
     public class TileFinder
     {
@@ -26,8 +37,11 @@ namespace CelesteBot_Everest_Interop
 
         public static Vector2 TilesOffset = new Vector2(0,0); // TilesOffset for SolidsData offset
 
-        private static Vector2 cacheOffset = new Vector2(2, 1);
-        private static Entity[,,] cache = new Entity[4, 2, 2];
+        private static int framesToCacheWipe = CelesteBotManager.ENTITY_CACHE_UPDATE_FRAMES;
+        private static Level cachedLevel;
+        private static Vector2 cacheOffset = new Vector2(CelesteBotManager.TILE_2D_X_CACHE_SIZE / 2, CelesteBotManager.TILE_2D_Y_CACHE_SIZE / 2);
+        private static Entity[,] tileCache = new Entity[CelesteBotManager.TILE_2D_X_CACHE_SIZE, CelesteBotManager.TILE_2D_Y_CACHE_SIZE];
+        private static Entity[,] entityCache = new Entity[CelesteBotManager.TILE_2D_X_CACHE_SIZE, CelesteBotManager.TILE_2D_Y_CACHE_SIZE];
 
         public static void GetAllEntities()
         {
@@ -220,16 +234,22 @@ namespace CelesteBot_Everest_Interop
         }
         public static Entity GetEntityAtTile(Vector2 tile)
         {
+            if(cachedLevel != celesteLevel)
+            {
+                cachedLevel = celesteLevel;
+                tileCache = new Entity[tileCache.GetLength(0), tileCache.GetLength(1)];
+            }
+
             int xind = (int)(cacheOffset.X + tile.X);
             int yind = (int)(cacheOffset.Y + tile.Y);
-            while(xind < 0 || xind >= cache.GetLength(0) || yind < 0 || yind >= cache.GetLength(1))
+            if (xind < 0 || xind >= tileCache.GetLength(0) || yind < 0 || yind >= tileCache.GetLength(1))
             {
-                ScaleCache();
+                MoveCache((int)tile.X, (int)tile.Y);
                 xind = (int)(cacheOffset.X + tile.X);
                 yind = (int)(cacheOffset.Y + tile.Y);
             }
             
-            if (cache[xind, yind, 0] == Entity.Unset)
+            if (tileCache[xind, yind] == Entity.Unset)
             {
                 EntityList entities = Celeste.Celeste.Scene.Entities;
                 Vector2 real = RealFromTile(tile);
@@ -237,29 +257,29 @@ namespace CelesteBot_Everest_Interop
                 {
                     if (entities[i] is SolidTiles && entities[i].Collidable && entities[i].CollideRect(new Rectangle((int)real.X, (int)real.Y, 8, 8)))
                     {
-                        cache[xind, yind, 0] = Entity.Tile;
+                        tileCache[xind, yind] = Entity.Tile;
                     }
                 }
-                if (cache[xind, yind, 0] == Entity.Unset)
+                if (tileCache[xind, yind] == Entity.Unset)
                 {
-                    cache[xind, yind, 0] = Entity.Air;
+                    tileCache[xind, yind] = Entity.Air;
                 }
             }
             
-            if(cache[xind, yind, 0] == Entity.Tile)
+            if(tileCache[xind, yind] == Entity.Tile)
             {
                 //Logger.Log(LogLevel.Debug, "BOT_TEST", cache[xind, yind, 0].ToString() + " at " + xind.ToString() + ", " + yind.ToString() + ", 0");
-                return cache[xind, yind, 0];
+                return tileCache[xind, yind];
             }
-            else if(cache[xind, yind, 1] != Entity.Unset)
+            else if(entityCache[xind, yind] != Entity.Unset)
             {
                 //Logger.Log(LogLevel.Debug, "BOT_TEST", cache[xind, yind, 1].ToString() + " at " + xind.ToString() + ", " + yind.ToString() + ", 1");
-                return cache[xind, yind, 1];
+                return entityCache[xind, yind];
             }
             else
             {
                 //Logger.Log(LogLevel.Debug, "BOT_TEST", cache[xind, yind, 0].ToString() + " at " + xind.ToString() + ", " + yind.ToString() + ", 0");
-                return cache[xind, yind, 0];
+                return tileCache[xind, yind];
             }
         }
         public static void UpdateGrid()
@@ -281,13 +301,13 @@ namespace CelesteBot_Everest_Interop
         }
         public static void CacheEntities()
         {
-            for (int i = 0; i < cache.GetLength(0); i++)
+            if(framesToCacheWipe > 0)
             {
-                for (int j = 0; j < cache.GetLength(1); j++)
-                {
-                    cache[i, j, 1] = Entity.Unset;
-                }
+                framesToCacheWipe--;
+                return;
             }
+
+            entityCache = new Entity[tileCache.GetLength(0), tileCache.GetLength(1)];
 
             EntityList entities = Celeste.Celeste.Scene.Entities;
             for (int i = 0; i < entities.Count; i++)
@@ -295,10 +315,10 @@ namespace CelesteBot_Everest_Interop
                 if(entities[i].Collidable && entities[i].Collider != null && !(entities[i] is SolidTiles) && !(entities[i] is Player))
                 {
                     //Logger.Log(LogLevel.Debug, "BOT_TEST", entities[i].GetType().ToString());
-                    Entity type = Entity.Other;
-                    if(entities[i] is Spikes)
-                    {
-                        type = Entity.Spike;
+                    Entity type;
+                    if (!Enum.TryParse<Entity>(entities[i].GetType().ToString().Substring(8), out type)) {
+                        type = Entity.Other;
+                        Logger.Log(LogLevel.Debug, "celeste-bot", "Entity of type " + entities[i].GetType() + " not handled, add it to the Entity enum in TileFinder.cs");
                     }
                     Rectangle rect = entities[i].Collider.Bounds;
                     //Logger.Log(LogLevel.Debug, "BOT_TEST", rect.Left.ToString() + " " + rect.Right.ToString() + " " + rect.Bottom.ToString() + " " + rect.Top.ToString());
@@ -320,38 +340,80 @@ namespace CelesteBot_Everest_Interop
                             Vector2 tile = GetTileXY(new Vector2(j, k));
                             int xind = (int)(cacheOffset.X + tile.X);
                             int yind = (int)(cacheOffset.Y + tile.Y);
-                            while (xind < 0 || xind >= cache.GetLength(0) || yind < 0 || yind >= cache.GetLength(1))
+                            if (xind < 0 || xind >= tileCache.GetLength(0) || yind < 0 || yind >= tileCache.GetLength(1))
                             {
-                                ScaleCache();
+                                MoveCache((int)tile.X, (int)tile.Y);
                                 xind = (int)(cacheOffset.X + tile.X);
                                 yind = (int)(cacheOffset.Y + tile.Y);
                             }
-                            cache[xind, yind, 1] = type;
+                            entityCache[xind, yind] = type;
                             //Logger.Log(LogLevel.Debug, "BOT_TEST", cache[xind, yind, 1].ToString() + " cached at " + xind.ToString() + ", " + yind.ToString() + ", 1");
                             //Logger.Log(LogLevel.Debug, "BOT_TEST", cache[xind, yind, 0].ToString() + " cached at " + xind.ToString() + ", " + yind.ToString() + ", 0");
                         }
                     }
                 }
+
+                framesToCacheWipe = CelesteBotManager.ENTITY_CACHE_UPDATE_FRAMES;
             }
         }
         public static void ScaleCache()
         {
-            Entity[,,] newCache = new Entity[2 * cache.GetLength(0), 2 * cache.GetLength(1), 2];
+            Entity[,] newTileCache = new Entity[2 * tileCache.GetLength(0), 2 * tileCache.GetLength(1)];
+            Entity[,] newEntityCache = new Entity[2 * tileCache.GetLength(0), 2 * tileCache.GetLength(1)];
+            if (newTileCache.GetLength(0) > CelesteBotManager.TILE_2D_X_CACHE_SIZE || newTileCache.GetLength(1) > CelesteBotManager.TILE_2D_Y_CACHE_SIZE)
+            {
+                return;
+            }
 
             int xoff = (int)cacheOffset.X;
             int yoff = (int)cacheOffset.Y;
 
-            for(int i = 0; i < cache.GetLength(0); i++)
+            for(int i = 0; i < tileCache.GetLength(0); i++)
             {
-                for(int j = 0; j < cache.GetLength(1); j++)
+                for(int j = 0; j < tileCache.GetLength(1); j++)
                 {
-                    newCache[xoff + i, yoff + j, 0] = cache[i, j, 0];
-                    newCache[xoff + i, yoff + j, 1] = cache[i, j, 1];
+                    newTileCache[xoff + i, yoff + j] = tileCache[i, j];
+                    newEntityCache[xoff + i, yoff + j] = entityCache[i, j];
                 }
             }
 
-            cache = newCache;
+            tileCache = newTileCache;
+            entityCache = newEntityCache;
             cacheOffset *= 2;
+        }
+        public static void MoveCache(int x, int y)
+        {
+            Entity[,] newTileCache = new Entity[tileCache.GetLength(0), tileCache.GetLength(1)];
+            Entity[,] newEntityCache = new Entity[tileCache.GetLength(0), tileCache.GetLength(1)];
+
+            int xoff = (int)cacheOffset.X;
+            int yoff = (int)cacheOffset.Y;
+            int newXoff = tileCache.GetLength(0) / 2 - x;
+            int newYoff = tileCache.GetLength(1) / 2 - y;
+            int shiftx = newXoff - xoff;
+            int shifty = newYoff - yoff;
+
+            for (int i = 0; i < tileCache.GetLength(0) && shiftx + i < tileCache.GetLength(0); i++)
+            {
+                if(shiftx + i < 0)
+                {
+                    continue;
+                }
+                for (int j = 0; j < tileCache.GetLength(1) && shifty + j < tileCache.GetLength(1); j++)
+                {
+                    if (shifty + j < 0)
+                    {
+                        continue;
+                    }
+
+                    newTileCache[shiftx + i, shifty + j] = tileCache[i, j];
+                    newEntityCache[shiftx + i, shifty + j] = entityCache[i, j];
+                }
+            }
+
+            tileCache = newTileCache;
+            entityCache = newEntityCache;
+            cacheOffset = new Vector2(newXoff, newYoff);
         }
         //public static MTexture[,] GetSplicedTileArray(int visionX, int visionY)
         //{

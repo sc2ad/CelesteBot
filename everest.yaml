@@ -1,0 +1,6 @@
+- Name: CelesteBot
+  Version: 1.0.0
+  DLL: CelesteBot-Everest-Interop/bin/Debug/CelesteBot-Everest-Interop.dll
+  Dependencies:
+    - Name: Everest
+      Version: 1.0.0

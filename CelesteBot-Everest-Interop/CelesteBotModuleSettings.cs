@@ -42,6 +42,14 @@ namespace CelesteBot_Everest_Interop
         public int XVisionSize { get; set; } = 10;
         [SettingRange(4, 30), SettingNeedsRelaunch()]
         public int YVisionSize { get; set; } = 10;
+        [SettingRange(60, 3000), SettingNeedsRelaunch()]
+        public int XMaxCacheSize { get; set; } = 1000;
+        [SettingRange(60, 3000), SettingNeedsRelaunch()]
+        public int YMaxCacheSize { get; set; } = 1000;
+        [SettingRange(1, 60), SettingNeedsRelaunch()]
+        public int EntityCacheUpdateFrames { get; set; } = 10;
+        [SettingRange(2, 100), SettingNeedsRelaunch()]
+        public int FastModeMultiplier { get; set; } = 10;
         [SettingRange(50, 100), SettingNeedsRelaunch()]
         public int ActionThreshold { get; set; } = 55;
         [SettingRange(1, 100), SettingNeedsRelaunch()]
