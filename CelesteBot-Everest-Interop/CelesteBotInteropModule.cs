@@ -398,7 +398,7 @@ namespace CelesteBot_Everest_Interop
             }
             else if (IsKeyDown(Keys.F))
             {
-                FrameLoops = 4;
+                FrameLoops = CelesteBotManager.FAST_MODE_MULTIPLIER;
             }
             if (state == State.Running)
             {

@@ -20,6 +20,10 @@ namespace CelesteBot_Everest_Interop
         
         public static int VISION_2D_X_SIZE = 5; // X Size of the Vision array
         public static int VISION_2D_Y_SIZE = 5; // Y Size of the Vision array
+        public static int TILE_2D_X_CACHE_SIZE = 1000;
+        public static int TILE_2D_Y_CACHE_SIZE = 1000;
+        public static int ENTITY_CACHE_UPDATE_FRAMES = 10;
+        public static int FAST_MODE_MULTIPLIER = 10;
         public static int INPUTS = VISION_2D_X_SIZE * VISION_2D_Y_SIZE + 6;
         public static int OUTPUTS = 6;
 
@@ -78,6 +82,8 @@ namespace CelesteBot_Everest_Interop
 
             VISION_2D_X_SIZE = CelesteBotInteropModule.Settings.XVisionSize; // X Size of the Vision array
             VISION_2D_Y_SIZE = CelesteBotInteropModule.Settings.YVisionSize; // Y Size of the Vision array
+            TILE_2D_X_CACHE_SIZE = CelesteBotInteropModule.Settings.XMaxCacheSize; // X Size of the Vision array
+            TILE_2D_Y_CACHE_SIZE = CelesteBotInteropModule.Settings.YMaxCacheSize; // Y Size of the Vision array
             INPUTS = VISION_2D_X_SIZE * VISION_2D_Y_SIZE + 6;
             OUTPUTS = 6;
 
