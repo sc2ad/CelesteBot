@@ -9,6 +9,7 @@ CelesteBot uses [Everest](https://everestapi.github.io/), you should follow the 
 3. Create a file in the Celeste directory called fitness.fit.
 4. Open CelesteBot/CelesteBot-Everest-Interop/CelesteBot-Everest-Interop.csproj in your favorite C# IDE (VisualStudio works best).
 5. Build the project to CelesteBot/CelesteBot-Everest-Interop/bin/Debug/CelesteBot-Everest-Interop.dll (default on VisualStudio).
+6. Don't forget to copy over the DLL to the Mods folder in your Celeste directory!
 
 After that, you should be good to open Celeste and run CelesteBot.
 ### References
