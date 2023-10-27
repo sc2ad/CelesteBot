@@ -5,7 +5,20 @@ using Monocle;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-
+/*
+ * The selected code block belongs to the CelesteBotManager class and is found in the CelesteBotManager.cs file.
+This class contains various member variables that hold the configurations for the program as well as some utility 
+methods namely Initialize, Draw, UpdateQTable.
+The CelesteBotManager class contains parameters that configure the way the NEAT algorithm functions when training,
+such as how weights are mutated (with the parameter WEIGHT_MUTATION_CHANCE), the chance for a new connection to be added 
+(ADD_CONNECTION_CHANCE), and the chance for a new node to be added (ADD_NODE_CHANCE). Other parameters include learning 
+rate, gamma, and epsilon for the Q-learning algorithm, and some fitness parameters for the training process.
+The Initialize method loads the configuration settings that can be modified by the user, and sets them in their respective 
+variables. The Draw method is responsible for rendering visual elements like graphs and the player's neural network. 
+Finally, the UpdateQTable method performs the necessary calculations on the current state and action, thus updating the 
+Q Table for the player.
+ * 
+ */
 namespace CelesteBot_Everest_Interop
 {
     public class CelesteBotManager

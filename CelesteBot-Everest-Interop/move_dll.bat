@@ -1,0 +1,2 @@
+copy "bin\Debug\CelesteBot-Everest-Interop.dll" "C:\Program Files (x86)\Steam\steamapps\common\Celeste\Mods\CelesteBot\Code";
+copy "..\everest.yaml" "C:\Program Files (x86)\Steam\steamapps\common\Celeste\Mods\CelesteBot\";

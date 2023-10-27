@@ -8,6 +8,6 @@ namespace CelesteBot_Everest_Interop
 {
     public enum LearningStyle
     {
-        NEAT, Q
+        NEAT, Q, PPO
     }
 }

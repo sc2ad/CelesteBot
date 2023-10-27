@@ -10,7 +10,15 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Runtime.Serialization;
-
+/*
+ * The CelestePlayer class represents the player in the game and is located in the same file as the CelesteBotInteropModule. 
+ * It contains a Brain property which represents its neural network, a Fitness property to keep track of its performance in
+ * the game, InputData and Vision properties which are used to provide input to the neural network, and various other properties
+ * and methods related to gameplay.
+The Brain property is used to decide which actions to take based on the inputs given to it. The Population of players contains 
+multiple instances of CelestePlayer. During gameplay, the current player is retrieved from the Population and manipulated using
+the CurrentPlayer property.
+ */
 namespace CelesteBot_Everest_Interop
 {
     [KnownType(typeof(CelestePlayer))]

@@ -17,7 +17,20 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using Logger = Celeste.Mod.Logger;
+/*
+This is the CelesteBotInteropModule class located in the CelesteBotInteropModule.cs file. It is a module that allows 
+Celeste to interact with external python applications that utilize the NEAT Machine Learning algorithm.
+The module reads input from external data and applies the machine learning algorithm to it, represented in the program 
+as a Population consisting of CelestePlayer instances. The LearningStyle specified in the module can be set to either 
+LearningStyle.NEAT or LearningStyle.Q, representing two different learning algorithms:  the NEAT algorithm for evolving 
+neural networks, and the Q-learning algorithm for tabular learning.
 
+In addition to the module's learning functionalities, its implementation consist of multiple keyboard events which dictate
+specific functionalities during runtime, such as, RunBest, RunThroughSpecies, ShowBestEachGen, and FrameLoops.
+[CURRENT LINE WITH CURSOR] The code block that you have selected represents a portion of the MInput_Update method which 
+handles input events. In the context of this block of code, if the last input was a request to talk to an NPC, it stops 
+talking for a quick frame.
+*/
 namespace CelesteBot_Everest_Interop
 {
     public class CelesteBotInteropModule : EverestModule
@@ -149,7 +162,8 @@ namespace CelesteBot_Everest_Interop
         }
         
         public static void MInput_Update(On.Monocle.MInput.orig_Update original)
-        {
+        {   
+            // Comment this function  
             if (!Settings.Enabled)
             {
                 original();
